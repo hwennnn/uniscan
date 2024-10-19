@@ -6,6 +6,9 @@ RUN corepack enable
 # Install procps to get ps command
 RUN apt-get update && apt-get install -y procps
 
+# Install openssl to generate self-signed certificates
+RUN apt-get update -y && apt-get install -y openssl
+
 WORKDIR /app
 
 # Install dependencies

@@ -16,7 +16,7 @@ datasource db {
 model EthPrice {
   id        String   @id @default(uuid())
   price     Float
-  timestamp DateTime @unique
+  timestamp DateTime @default(now())
 
   @@index([timestamp])
 }
