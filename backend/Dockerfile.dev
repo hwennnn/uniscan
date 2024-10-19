@@ -2,10 +2,18 @@ FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+
+# Install procps to get ps command
+RUN apt-get update && apt-get install -y procps
+
 WORKDIR /app
 
+# Install dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
+# Install NestJS CLI
+RUN pnpm add -g @nestjs/cli
 
 COPY . .
 
