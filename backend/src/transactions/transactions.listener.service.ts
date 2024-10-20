@@ -13,11 +13,10 @@ import {
 } from 'ethers';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-
-// ABI for the Uniswap V3 Pool contract
-const UNISWAP_V3_POOL_ABI = [
-  'event Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)',
-];
+import {
+  UNISWAP_V3_POOL_ABI,
+  USDC_ETH_POOL_ADDRESS,
+} from 'src/transactions/models/constants';
 
 @Injectable()
 export class TransactionsListenerService
@@ -48,16 +47,15 @@ export class TransactionsListenerService
     );
     this.provider = new WebSocketProvider(websocketUrl);
 
-    const poolAddress = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'; // USDC/ETH pool address
     this.poolContract = new ethers.Contract(
-      poolAddress,
+      USDC_ETH_POOL_ADDRESS,
       UNISWAP_V3_POOL_ABI,
       this.provider,
     );
 
     this.poolContract.on('Swap', this.handleSwapEvent.bind(this));
 
-    console.log('Listening for Uniswap V3 USDC/ETH pool swap events...');
+    this.logger.log('Listening for Uniswap V3 USDC/ETH pool swap events...');
   }
 
   private async handleSwapEvent(
