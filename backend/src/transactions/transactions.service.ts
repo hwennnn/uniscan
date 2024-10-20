@@ -1,12 +1,21 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Transaction } from '@prisma/client';
+import axios from 'axios';
+import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
+import {
+  InfuraTransactionResponse,
+  QueryTransaction,
+} from 'src/transactions/models/transaction';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly ethPriceService: EthPriceService,
     private readonly logger: Logger,
   ) {}
 
@@ -54,5 +63,43 @@ export class TransactionsService {
       transactions,
       hasMore,
     };
+  }
+
+  async findTransaction(hash: string): Promise<QueryTransaction | null> {
+    const INFURA_API_URL = this.configService.get<string>('INFURA_API_URL');
+
+    const response = await axios.post<InfuraTransactionResponse>(
+      INFURA_API_URL,
+      {
+        jsonrpc: '2.0',
+        method: 'eth_getTransactionByHash',
+        params: [hash],
+        id: 1,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const result = response.data.result;
+
+    if (!result.hash || !result.gas || !result.gasPrice) {
+      return null;
+    }
+
+    const gasPrice = BigInt(result.gasPrice);
+    const gasUsed = BigInt(result.gas);
+    const { feeInEth, feeInUsdt } =
+      await this.ethPriceService.calculateFeeInUsdt(gasPrice, gasUsed);
+
+    const transaction: QueryTransaction = {
+      transactionHash: result.hash,
+      feeInEth,
+      feeInUsdt,
+    };
+
+    return transaction;
   }
 }

@@ -5,12 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ContractEventPayload,
-  ethers,
-  formatEther,
-  WebSocketProvider,
-} from 'ethers';
+import { ContractEventPayload, ethers, WebSocketProvider } from 'ethers';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -42,9 +37,7 @@ export class TransactionsListenerService
   }
 
   private async setupListener() {
-    const websocketUrl = this.configService.get<string>(
-      'ETHEREUM_WEBSOCKET_URL',
-    );
+    const websocketUrl = this.configService.get<string>('INFURA_WEBSOCKET_URL');
     this.provider = new WebSocketProvider(websocketUrl);
 
     this.poolContract = new ethers.Contract(
@@ -73,13 +66,9 @@ export class TransactionsListenerService
 
     const gasPrice = transaction.gasPrice;
     const gasUsed = transaction.gasLimit;
-    const gasInWei = gasPrice * gasUsed;
-    const feeInEth = formatEther(gasInWei); // Multiply gasPrice by gasUsed to get fee in Wei
+    const { feeInEth, feeInUsdt } =
+      await this.ethPriceService.calculateFeeInUsdt(gasPrice, gasUsed);
 
-    const ethPriceInUsdt = (await this.ethPriceService.getLatestEthPrice())
-      .price;
-
-    const feeInUsdt = (parseFloat(feeInEth) * ethPriceInUsdt).toFixed(4); // Multiply feeInEth by ETH price to get fee in USDT
     const transactionData = {
       transactionHash: transaction.hash,
       blockNumber: transaction.blockNumber.toString(),

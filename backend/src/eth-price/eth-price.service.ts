@@ -7,6 +7,7 @@ import {
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EthPrice } from '@prisma/client';
 import axios from 'axios';
+import { formatEther } from 'ethers';
 import {
   BINANCE_ETH_PRICE_URL,
   ETH_PRICE_CACHE_TTL,
@@ -85,5 +86,25 @@ export class EthPriceService {
     );
 
     return latestPrice;
+  }
+
+  async calculateFeeInUsdt(
+    gasPrice: bigint,
+    gasUsed: bigint,
+  ): Promise<{
+    feeInUsdt: string;
+    feeInEth: string;
+  }> {
+    const gasInWei = gasPrice * gasUsed;
+    const feeInEth = formatEther(gasInWei); // Multiply gasPrice by gasUsed to get fee in Wei
+
+    const ethPriceInUsdt = (await this.getLatestEthPrice()).price;
+
+    const feeInUsdt = (parseFloat(feeInEth) * ethPriceInUsdt).toFixed(4); // Multiply feeInEth by ETH price to get fee in USDT
+
+    return {
+      feeInEth,
+      feeInUsdt,
+    };
   }
 }

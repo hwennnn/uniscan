@@ -1,6 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { Transaction } from '@prisma/client';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
+import { QueryTransaction } from 'src/transactions/models/transaction';
 import { TransactionsService } from 'src/transactions/transactions.service';
 
 @Controller('transactions')
@@ -8,7 +9,7 @@ export class TransactionsController {
   constructor(private readonly transactionService: TransactionsService) {}
 
   @Get()
-  async findPosts(
+  async findTransactions(
     @Query() dto: GetTransactionsDto,
   ): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
     const parsedDto: GetTransactionsDto = {
@@ -18,5 +19,12 @@ export class TransactionsController {
     };
 
     return await this.transactionService.findTransactions(parsedDto);
+  }
+
+  @Get(':hash')
+  async findTransaction(
+    @Param('hash') hash: string,
+  ): Promise<QueryTransaction | null> {
+    return await this.transactionService.findTransaction(hash);
   }
 }
