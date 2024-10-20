@@ -28,7 +28,12 @@ export class TransactionsService {
       .findMany({
         take: limit + 1,
         skip: offset,
-        cursor,
+        where: {
+          id: cursor ? { lte: cursor.id } : undefined,
+        },
+        orderBy: {
+          id: 'desc',
+        },
       })
       .catch((e) => {
         this.logger.error(
