@@ -23,7 +23,7 @@ model EthPrice {
 
 model Transaction {
   id              Int      @id @default(autoincrement())
-  transactionHash String   @unique
+  transactionHash String
   blockNumber     String
   timestamp       DateTime
   sender          String
