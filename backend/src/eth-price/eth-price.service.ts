@@ -49,7 +49,7 @@ export class EthPriceService {
     }
   }
 
-  async getSummary(): Promise<EthPrice | null> {
+  async getLatestEthPrice(): Promise<EthPrice | null> {
     // Try to fetch from Redis
     const cachedData = await this.redisService.get<EthPrice>(
       LATEST_ETH_PRICE_CACHE_KEY,

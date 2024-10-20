@@ -8,6 +8,6 @@ export class EthPriceController {
 
   @Get('summary')
   async getSummary(): Promise<EthPrice | null> {
-    return this.ethPriceService.getSummary();
+    return this.ethPriceService.getLatestEthPrice();
   }
 }

@@ -6,6 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AppService } from './app.service';
     PrismaModule,
     RedisModule,
     EthPriceModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
