@@ -31,3 +31,11 @@ model Transaction {
   feeInEth        String
   feeInUsdt       String
 }
+
+model Summary {
+  id           String   @id @default(uuid())
+  totalTxns    Int      @default(0)
+  totalFeeETH  Float    @default(0)
+  totalFeeUSDT Float    @default(0)
+  updatedAt    DateTime @updatedAt
+}

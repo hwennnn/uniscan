@@ -14,6 +14,7 @@ import {
   UNISWAP_V3_POOL_ABI,
   USDC_ETH_POOL_ADDRESS,
 } from 'src/transactions/models/constants';
+import { TransactionsService } from 'src/transactions/transactions.service';
 
 @Injectable()
 export class TransactionsListenerService
@@ -28,6 +29,7 @@ export class TransactionsListenerService
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     private readonly ethPriceService: EthPriceService,
+    private readonly transactionsService: TransactionsService,
     private readonly logger: Logger,
   ) {
     this.infuraApiKey = this.configService.get<string>('INFURA_API_KEY');
@@ -88,6 +90,8 @@ export class TransactionsListenerService
     await this.prismaService.transaction.create({
       data: transactionData,
     });
+
+    await this.transactionsService.updateSummary(feeInEth, feeInUsdt);
 
     this.logger.log(
       `Processed swap event: ${transaction.hash} ${feeInEth}ETH ${feeInUsdt}USDC`,

@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { Transaction } from '@prisma/client';
+import { Summary, Transaction } from '@prisma/client';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
 import {
   QueryTransaction,
@@ -37,6 +37,11 @@ export class TransactionsController {
     };
 
     return await this.transactionService.findHistoricalTransactions(parsedDto);
+  }
+
+  @Get('summary')
+  async getTransactionsSummary(): Promise<Summary | null> {
+    return await this.transactionService.getTransactionsSummary();
   }
 
   @Get(':hash')

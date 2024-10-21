@@ -100,7 +100,7 @@ export class EthPriceService {
 
     const ethPriceInUsdt = (await this.getLatestEthPrice()).price;
 
-    const feeInUsdt = (parseFloat(feeInEth) * ethPriceInUsdt).toFixed(4); // Multiply feeInEth by ETH price to get fee in USDT
+    const feeInUsdt = (parseFloat(feeInEth) * ethPriceInUsdt).toString(); // Multiply feeInEth by ETH price to get fee in USDT
 
     return {
       feeInEth,

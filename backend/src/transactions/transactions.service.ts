@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Transaction } from '@prisma/client';
+import { Summary, Transaction } from '@prisma/client';
 import axios from 'axios';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -122,11 +122,11 @@ export class TransactionsService {
   async findHistoricalTransactions(
     dto: GetHistoricalTransactionsDto,
   ): Promise<QueryTransactions> {
-    const startBlock = await this.getBlockNumberByTimestamp(
-      dto.dateFrom,
-      'after',
-    );
-    const endBlock = await this.getBlockNumberByTimestamp(dto.dateTo, 'before');
+    const [startBlock, endBlock] = await Promise.all([
+      this.getBlockNumberByTimestamp(dto.dateFrom, 'after'),
+      this.getBlockNumberByTimestamp(dto.dateTo, 'before'),
+    ]);
+
     const page = dto.page ?? 1;
     const offset = dto.offset ?? 100;
 
@@ -206,5 +206,49 @@ export class TransactionsService {
     const blockNumber = Number(response.data.result);
 
     return blockNumber;
+  }
+
+  async updateSummary(feeInEth: string, feeInUsdt: string): Promise<void> {
+    const summaries = await this.prismaService.summary.findMany({});
+
+    const summary = summaries.length > 0 ? summaries[0] : null;
+    let newSummary: Summary;
+
+    if (summary === null) {
+      newSummary = await this.prismaService.summary.create({
+        data: {
+          totalFeeETH: parseFloat(feeInEth),
+          totalFeeUSDT: parseFloat(feeInUsdt),
+          totalTxns: 1,
+        },
+      });
+    } else {
+      newSummary = await this.prismaService.summary.update({
+        where: {
+          id: summary.id,
+        },
+        data: {
+          totalFeeETH: {
+            increment: parseFloat(feeInEth),
+          },
+          totalFeeUSDT: {
+            increment: parseFloat(feeInUsdt),
+          },
+          totalTxns: {
+            increment: 1,
+          },
+        },
+      });
+    }
+
+    this.logger.log(
+      `Updated Summary: ${newSummary.totalFeeETH}ETH ${newSummary.totalFeeUSDT}USDT ${newSummary.totalTxns} txns`,
+    );
+  }
+
+  async getTransactionsSummary(): Promise<Summary | null> {
+    const summary = await this.prismaService.summary.findMany({});
+
+    return summary.length > 0 ? summary[0] : null;
   }
 }

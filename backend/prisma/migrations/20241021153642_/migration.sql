@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "Summary" (
+    "id" TEXT NOT NULL,
+    "totalTxns" INTEGER NOT NULL DEFAULT 0,
+    "totalFeeETH" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "totalFeeUSDT" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Summary_pkey" PRIMARY KEY ("id")
+);
