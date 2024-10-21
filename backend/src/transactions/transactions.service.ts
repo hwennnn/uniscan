@@ -4,16 +4,25 @@ import { Transaction } from '@prisma/client';
 import axios from 'axios';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { GetHistoricalTransactionsDto } from 'src/transactions/dto/get-historical-transactions.dto';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
-import { INFURA_API_URL } from 'src/transactions/models/constants';
 import {
+  ETHERSCAN_API_BLOCK_NUMBER_URL,
+  ETHERSCAN_API_TOKEN_TRANSACTIONS_URL,
+  INFURA_API_URL,
+} from 'src/transactions/models/constants';
+import {
+  EtherscanBlockResponse,
+  EtherscanHistorialTransactionResponse,
   InfuraTransactionResponse,
   QueryTransaction,
+  QueryTransactions,
 } from 'src/transactions/models/transaction';
 
 @Injectable()
 export class TransactionsService {
   private readonly infuraApiKey: string;
+  private readonly etherscanApiKey: string;
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -22,6 +31,7 @@ export class TransactionsService {
     private readonly logger: Logger,
   ) {
     this.infuraApiKey = this.configService.get<string>('INFURA_API_KEY');
+    this.etherscanApiKey = this.configService.get<string>('ETHERSCAN_API_KEY');
   }
 
   async findTransactions(dto: GetTransactionsDto): Promise<{
@@ -107,5 +117,94 @@ export class TransactionsService {
     };
 
     return transaction;
+  }
+
+  async findHistoricalTransactions(
+    dto: GetHistoricalTransactionsDto,
+  ): Promise<QueryTransactions> {
+    const startBlock = await this.getBlockNumberByTimestamp(
+      dto.dateFrom,
+      'after',
+    );
+    const endBlock = await this.getBlockNumberByTimestamp(dto.dateTo, 'before');
+    const page = dto.page ?? 1;
+    const offset = dto.offset ?? 100;
+
+    const transactions = await this.getHistoricalTransactionsByBatch(
+      startBlock,
+      endBlock,
+      page,
+      offset,
+    );
+
+    return transactions;
+  }
+
+  private async getHistoricalTransactionsByBatch(
+    startBlock: number,
+    endBlock: number,
+    page: number,
+    offset: number,
+  ): Promise<QueryTransactions> {
+    const apiUrl = ETHERSCAN_API_TOKEN_TRANSACTIONS_URL(
+      page,
+      offset + 1,
+      startBlock,
+      endBlock,
+      this.etherscanApiKey,
+    );
+
+    const response =
+      await axios.get<EtherscanHistorialTransactionResponse>(apiUrl);
+
+    const transactions = response.data.result;
+    const hasMore = transactions.length === offset + 1;
+
+    if (hasMore) {
+      transactions.pop();
+    }
+
+    const formattedTransactions = await Promise.all(
+      transactions.map(async (transaction) => {
+        const gasPrice = BigInt(transaction.gasPrice);
+        const gasUsed = BigInt(transaction.gas);
+
+        const { feeInEth, feeInUsdt } =
+          await this.ethPriceService.calculateFeeInUsdt(gasPrice, gasUsed);
+
+        const data: QueryTransaction = {
+          transactionHash: transaction.hash,
+          feeInEth,
+          feeInUsdt,
+        };
+
+        return data;
+      }),
+    );
+
+    return {
+      transactions: formattedTransactions,
+      hasMore,
+      page,
+    };
+  }
+
+  private async getBlockNumberByTimestamp(
+    timestamp: string,
+    closest: 'before' | 'after',
+  ): Promise<number> {
+    const unixTimestamp = Math.floor(Number(timestamp) / 1000);
+
+    const apiUrl = ETHERSCAN_API_BLOCK_NUMBER_URL(
+      unixTimestamp.toString(),
+      closest,
+      this.etherscanApiKey,
+    );
+
+    const response = await axios.get<EtherscanBlockResponse>(apiUrl);
+
+    const blockNumber = Number(response.data.result);
+
+    return blockNumber;
   }
 }

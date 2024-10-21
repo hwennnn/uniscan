@@ -12,4 +12,20 @@ export const INFURA_WEB_SOCKET_URL = (apiKey: string) =>
 export const INFURA_API_URL = (apiKey: string) =>
   `https://mainnet.infura.io/v3/${apiKey}`;
 
-export const ETHERSCAN_API_BASE_URL = 'https://api.etherscan.io/api';
+const ETHERSCAN_API_BASE_URL = 'https://api.etherscan.io/api';
+
+export const ETHERSCAN_API_BLOCK_NUMBER_URL = (
+  timestamp: string,
+  closest: 'before' | 'after',
+  apiKey: string,
+) =>
+  `${ETHERSCAN_API_BASE_URL}?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=${closest}&apikey=${apiKey}`;
+
+export const ETHERSCAN_API_TOKEN_TRANSACTIONS_URL = (
+  page: number,
+  offset: number,
+  startBlock: number,
+  endBlock: number,
+  apiKey: string,
+) =>
+  `${ETHERSCAN_API_BASE_URL}?module=account&action=tokentx&address=${USDC_ETH_POOL_ADDRESS}&page=${page}&offset=${offset}&startblock=${startBlock}&endblock=${endBlock}&sort=desc&apikey=${apiKey}`;

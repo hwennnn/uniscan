@@ -29,3 +29,43 @@ export interface QueryTransaction {
   feeInEth: string;
   feeInUsdt: string;
 }
+
+export interface EtherscanBlockResponse {
+  status: string;
+  message: string;
+  result: string;
+}
+
+export interface EtherscanHistorialTransactionResponse {
+  status: string;
+  message: string;
+  result: EtherscanHistorialTransaction[];
+}
+
+export interface EtherscanHistorialTransaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  from: string;
+  contractAddress: string;
+  to: string;
+  value: string;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenDecimal: string;
+  transactionIndex: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  cumulativeGasUsed: string;
+  input: string;
+  confirmations: string;
+}
+
+export interface QueryTransactions {
+  transactions: QueryTransaction[];
+  hasMore: boolean;
+  page: number;
+}
