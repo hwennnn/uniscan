@@ -164,8 +164,17 @@ export class TransactionsService {
       transactions.pop();
     }
 
+    const processedHashes = new Set<string>(); // Set to track unique transaction hashes
+
     const formattedTransactions = await Promise.all(
       transactions.map(async (transaction) => {
+        if (processedHashes.has(transaction.hash)) {
+          return null; // Skip if transaction hash is already processed
+        }
+
+        // Add the transaction hash to the set to avoid re-processing
+        processedHashes.add(transaction.hash);
+
         const gasPrice = BigInt(transaction.gasPrice);
         const gasUsed = BigInt(transaction.gas);
 
@@ -182,8 +191,13 @@ export class TransactionsService {
       }),
     );
 
+    // Filter out any skipped (null) transactions
+    const filteredTransactions = formattedTransactions.filter(
+      (transaction) => transaction !== null,
+    );
+
     return {
-      transactions: formattedTransactions,
+      transactions: filteredTransactions,
       hasMore,
       page,
     };
