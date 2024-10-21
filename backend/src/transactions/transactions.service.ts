@@ -5,6 +5,7 @@ import axios from 'axios';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
+import { INFURA_API_URL } from 'src/transactions/models/constants';
 import {
   InfuraTransactionResponse,
   QueryTransaction,
@@ -12,12 +13,16 @@ import {
 
 @Injectable()
 export class TransactionsService {
+  private readonly infuraApiKey: string;
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
     private readonly ethPriceService: EthPriceService,
     private readonly logger: Logger,
-  ) {}
+  ) {
+    this.infuraApiKey = this.configService.get<string>('INFURA_API_KEY');
+  }
 
   async findTransactions(dto: GetTransactionsDto): Promise<{
     transactions: Transaction[];
@@ -66,10 +71,10 @@ export class TransactionsService {
   }
 
   async findTransaction(hash: string): Promise<QueryTransaction | null> {
-    const INFURA_API_URL = this.configService.get<string>('INFURA_API_URL');
+    const infuraApiUrl = INFURA_API_URL(this.infuraApiKey);
 
     const response = await axios.post<InfuraTransactionResponse>(
-      INFURA_API_URL,
+      infuraApiUrl,
       {
         jsonrpc: '2.0',
         method: 'eth_getTransactionByHash',
@@ -91,6 +96,7 @@ export class TransactionsService {
 
     const gasPrice = BigInt(result.gasPrice);
     const gasUsed = BigInt(result.gas);
+
     const { feeInEth, feeInUsdt } =
       await this.ethPriceService.calculateFeeInUsdt(gasPrice, gasUsed);
 

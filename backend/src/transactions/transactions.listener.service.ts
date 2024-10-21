@@ -7,8 +7,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ContractEventPayload, ethers, WebSocketProvider } from 'ethers';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  INFURA_WEB_SOCKET_URL,
   UNISWAP_V3_POOL_ABI,
   USDC_ETH_POOL_ADDRESS,
 } from 'src/transactions/models/constants';
@@ -20,12 +22,16 @@ export class TransactionsListenerService
   private provider: WebSocketProvider;
   private poolContract: ethers.Contract;
 
+  private readonly infuraApiKey: string;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     private readonly ethPriceService: EthPriceService,
     private readonly logger: Logger,
-  ) {}
+  ) {
+    this.infuraApiKey = this.configService.get<string>('INFURA_API_KEY');
+  }
 
   async onModuleInit() {
     await this.setupListener();
@@ -37,7 +43,7 @@ export class TransactionsListenerService
   }
 
   private async setupListener() {
-    const websocketUrl = this.configService.get<string>('INFURA_WEBSOCKET_URL');
+    const websocketUrl = INFURA_WEB_SOCKET_URL(this.infuraApiKey);
     this.provider = new WebSocketProvider(websocketUrl);
 
     this.poolContract = new ethers.Contract(
@@ -84,7 +90,7 @@ export class TransactionsListenerService
     });
 
     this.logger.log(
-      `Processed swap event: ${transaction.hash} ${feeInEth} ${feeInUsdt}`,
+      `Processed swap event: ${transaction.hash} ${feeInEth}ETH ${feeInUsdt}USDC`,
     );
   }
 }
