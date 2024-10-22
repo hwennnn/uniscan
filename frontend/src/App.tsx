@@ -1,12 +1,10 @@
-import Dashboard from "./components/Dashboard";
-import TransactionsTable from "./components/TransactionsTable";
 import { APIProvider } from "./core/common/api-provider";
+import MainScreen from "./MainScreen";
 
 function App() {
   return (
     <APIProvider>
-      <Dashboard />
-      <TransactionsTable />
+      <MainScreen />
     </APIProvider>
   );
 }

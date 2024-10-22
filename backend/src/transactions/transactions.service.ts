@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Summary } from '@prisma/client';
 import axios from 'axios';
@@ -112,8 +117,10 @@ export class TransactionsService {
 
     const result = response.data.result;
 
-    if (!result.hash || !result.gas || !result.gasPrice) {
-      return null;
+    if (!result || !result.hash || !result.gas || !result.gasPrice) {
+      throw new NotFoundException(
+        'The transaction with the given hash was not found',
+      );
     }
 
     const gasPrice = BigInt(result.gasPrice);

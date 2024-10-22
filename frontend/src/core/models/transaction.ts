@@ -28,3 +28,9 @@ export type Summary = {
   totalFeeUSDT: number;
   updatedAt: Date;
 };
+
+export interface QueryTransaction {
+  transactionHash: string;
+  feeInEth: string;
+  feeInUsdt: string;
+}
