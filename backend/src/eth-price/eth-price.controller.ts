@@ -6,8 +6,8 @@ import { EthPriceService } from 'src/eth-price/eth-price.service';
 export class EthPriceController {
   constructor(private readonly ethPriceService: EthPriceService) {}
 
-  @Get('summary')
-  async getSummary(): Promise<EthPrice | null> {
+  @Get()
+  async getLatestEthPrice(): Promise<EthPrice | null> {
     return this.ethPriceService.getLatestEthPrice();
   }
 }

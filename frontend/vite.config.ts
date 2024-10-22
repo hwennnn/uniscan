@@ -13,5 +13,12 @@ export default defineConfig({
     strictPort: true,
     host: true,
     origin: "http://0.0.0.0:5173",
+    proxy: {
+      "/api": {
+        target: "http://uniscan-nestjs:8000/api",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
 });

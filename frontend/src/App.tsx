@@ -1,5 +1,12 @@
+import Dashboard from "./components/Dashboard";
+import { APIProvider } from "./core/common/api-provider";
+
 function App() {
-  return <h1 className="text-3xl font-bold underline">Hello world~</h1>;
+  return (
+    <APIProvider>
+      <Dashboard />
+    </APIProvider>
+  );
 }
 
 export default App;
