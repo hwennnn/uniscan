@@ -14,9 +14,11 @@ export const useLatestEthPriceQuery = createQuery<
 >({
   queryKey: ["eth-price"],
   fetcher: async () => {
-    const response = await client.get(`v1/eth-price`).catch((error) => {
-      return Promise.reject(error);
-    });
+    const response = await client
+      .get<Response>(`v1/eth-price`)
+      .catch((error) => {
+        return Promise.reject(error);
+      });
     return response.data;
   },
   refetchInterval: 1000,

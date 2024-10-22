@@ -17,6 +17,6 @@ export class GetTransactionsDto {
 
   @IsOptional()
   @IsNumberString()
-  @Validate(ValidNumberRangeValue, [15, 50])
+  @Validate(ValidNumberRangeValue, [10, 50])
   take?: number;
 }

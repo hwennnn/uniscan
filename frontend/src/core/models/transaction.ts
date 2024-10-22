@@ -1,4 +1,4 @@
-type Transaction = {
+export type Transaction = {
   id: number;
   timestamp: Date;
   transactionHash: string;
