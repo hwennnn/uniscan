@@ -9,6 +9,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Transaction } from "../core/models/transaction";
 import { useTransactionsQuery } from "../core/queries/get-transactions";
+import { useTransactionsSummaryQuery } from "../core/queries/get-transactions-summary";
 
 const DEFAULT_TRANSACTIONS_PER_PAGE = 10; // Set to 10 to show a maximum of 10 transactions per page
 
@@ -37,7 +38,11 @@ const TransactionsTable = () => {
     pageSize: DEFAULT_TRANSACTIONS_PER_PAGE, // Set initial page size to 10
   });
 
-  const { data: transactionsPage = null, isFetching } = useTransactionsQuery({
+  const {
+    data: transactionsPage = null,
+    isFetching,
+    refetch: refetchTransactions,
+  } = useTransactionsQuery({
     variables: {
       take: pagination.pageSize,
       cursor,
@@ -45,6 +50,11 @@ const TransactionsTable = () => {
     },
     placeholderData: keepPreviousData,
   });
+
+  const { data: summary = null, refetch: refetchSummary } =
+    useTransactionsSummaryQuery({
+      staleTime: Infinity,
+    });
 
   const transactions = useMemo(() => {
     if (!transactionsPage) {
@@ -74,8 +84,46 @@ const TransactionsTable = () => {
     debugTable: true,
   });
 
+  const handleRefresh = () => {
+    setPagination({ pageIndex: 0, pageSize: DEFAULT_TRANSACTIONS_PER_PAGE });
+    setCursor(undefined);
+    refetchSummary();
+    refetchTransactions();
+  };
+
   return (
     <div className="p-4 bg-white shadow-md rounded-lg">
+      <div className="mb-4 flex flex-row items-end justify-between bg-gray-100 p-4 rounded-lg shadow-md">
+        {summary !== null && (
+          <div className="flex-1 ">
+            <h2 className="text-lg font-semibold mb-2">Summary</h2>
+            <div className="text-md">
+              <p className="mb-1">
+                Total Transactions:{" "}
+                <span className="font-medium">{summary.totalTxns}</span>
+              </p>
+              <p className="mb-1">
+                Total Fees in ETH:{" "}
+                <span className="font-medium">{summary.totalFeeETH}</span>
+              </p>
+              <p className="mb-1">
+                Total Fees in USDT:{" "}
+                <span className="font-medium">{summary.totalFeeUSDT}</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-end">
+          <button
+            className="border rounded p-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+            onClick={handleRefresh}
+            title="This will reset the pagination and refresh the summary data."
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -125,73 +173,88 @@ const TransactionsTable = () => {
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex flex-col items-center justify-between mt-4 space-y-2">
         <div className="flex items-center gap-2">
           <button
-            className="border rounded p-1"
+            className="border rounded p-2"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
             {"<<"}
           </button>
           <button
-            className="border rounded p-1"
+            className="border rounded p-2"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
             {"<"}
           </button>
+          <div className="flex items-center gap-1">
+            {Array.from(
+              {
+                length: Math.min(table.getPageCount(), 10),
+              },
+              (_, index) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const startPage = Math.max(
+                  0,
+                  Math.min(pageIndex - 5, table.getPageCount() - 10)
+                );
+                const pageNumber = startPage + index;
+                return (
+                  <button
+                    key={pageNumber}
+                    className={`border rounded p-2 ${
+                      pageIndex === pageNumber ? "bg-blue-500 text-white" : ""
+                    }`}
+                    onClick={() => table.setPageIndex(pageNumber)}
+                  >
+                    {pageNumber + 1}
+                  </button>
+                );
+              }
+            )}
+          </div>
           <button
-            className="border rounded p-1"
+            className="border rounded p-2"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
             {">"}
           </button>
           <button
-            className="border rounded p-1"
+            className="border rounded p-2"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
             {">>"}
           </button>
         </div>
-        <span className="flex items-center gap-1">
-          <div>Page</div>
-          <strong>
-            {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount().toLocaleString()}
-          </strong>
-        </span>
-        <div className="flex items-center gap-1">
-          {Array.from({ length: table.getPageCount() }, (_, index) => (
-            <button
-              key={index}
-              className={`border rounded p-1 ${
-                table.getState().pagination.pageIndex === index
-                  ? "bg-blue-500 text-white"
-                  : ""
-              }`}
-              onClick={() => table.setPageIndex(index)}
-            >
-              {index + 1}
-            </button>
-          ))}
+
+        <div className="flex flex-col space-y-2 items-center">
+          <span className="flex items-center gap-1">
+            <div>Page</div>
+            <strong>
+              {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount().toLocaleString()}
+            </strong>
+          </span>
+
+          <select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => {
+              table.setPageSize(Number(e.target.value));
+            }}
+            className="border p-2 rounded"
+          >
+            {[10, 20, 30, 40, 50].map((pageSize) => (
+              <option key={pageSize} value={pageSize}>
+                Show {pageSize}
+              </option>
+            ))}
+          </select>
+          {isFetching ? "Loading..." : null}
         </div>
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => {
-            table.setPageSize(Number(e.target.value));
-          }}
-          className="border p-1 rounded"
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-        {isFetching ? "Loading..." : null}
       </div>
     </div>
   );

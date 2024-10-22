@@ -20,3 +20,11 @@ export type EthPrice = {
   price: number;
   timestamp: Date;
 };
+
+export type Summary = {
+  id: string;
+  totalTxns: number;
+  totalFeeETH: number;
+  totalFeeUSDT: number;
+  updatedAt: Date;
+};
