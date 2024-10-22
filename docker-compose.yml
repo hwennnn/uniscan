@@ -11,6 +11,13 @@ services:
     networks:
       - sub-etha
 
+  frontend:
+    container_name: uniscan-frontend
+    depends_on:
+      - nestjs
+    networks:
+      - sub-etha
+
   postgres:
     container_name: uniscan-postgres
     image: postgres:13

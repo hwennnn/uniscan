@@ -20,4 +20,6 @@ RUN pnpm add -g @nestjs/cli
 
 COPY . .
 
+RUN pnpm run db:generate
+
 CMD ["pnpm", "run", "start:dev"]
