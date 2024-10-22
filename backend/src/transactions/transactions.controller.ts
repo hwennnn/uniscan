@@ -1,7 +1,8 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { Summary, Transaction } from '@prisma/client';
+import { Summary } from '@prisma/client';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
 import {
+  PaginatedTransactions,
   QueryTransaction,
   QueryTransactions,
 } from 'src/transactions/models/transaction';
@@ -15,7 +16,7 @@ export class TransactionsController {
   @Get()
   async findTransactions(
     @Query() dto: GetTransactionsDto,
-  ): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
+  ): Promise<PaginatedTransactions> {
     const parsedDto: GetTransactionsDto = {
       cursor: dto.cursor,
       offset: dto.offset !== undefined ? +dto.offset : undefined,

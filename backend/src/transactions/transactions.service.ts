@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Summary, Transaction } from '@prisma/client';
+import { Summary } from '@prisma/client';
 import axios from 'axios';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -15,6 +15,7 @@ import {
   EtherscanBlockResponse,
   EtherscanHistorialTransactionResponse,
   InfuraTransactionResponse,
+  PaginatedTransactions,
   QueryTransaction,
   QueryTransactions,
 } from 'src/transactions/models/transaction';
@@ -34,10 +35,9 @@ export class TransactionsService {
     this.etherscanApiKey = this.configService.get<string>('ETHERSCAN_API_KEY');
   }
 
-  async findTransactions(dto: GetTransactionsDto): Promise<{
-    transactions: Transaction[];
-    hasMore: boolean;
-  }> {
+  async findTransactions(
+    dto: GetTransactionsDto,
+  ): Promise<PaginatedTransactions> {
     const limit = dto.take ?? 50;
     const offset = dto.offset ?? 0;
 
@@ -47,6 +47,13 @@ export class TransactionsService {
         id: +dto.cursor,
       };
     }
+
+    // Step 1: Count total transactions to calculate totalPages
+    const totalTransactions = await this.prismaService.transaction.count({
+      where: {
+        id: cursor ? { lte: cursor.id } : undefined,
+      },
+    });
 
     const transactions = await this.prismaService.transaction
       .findMany({
@@ -74,9 +81,14 @@ export class TransactionsService {
       transactions.pop();
     }
 
+    // Step 4: Calculate totalPages and currentPage
+    const totalPages = Math.ceil(totalTransactions / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
+
     return {
       transactions,
-      hasMore,
+      totalPages,
+      currentPage,
     };
   }
 
