@@ -192,7 +192,7 @@
 - **Endpoint:** `/transactions/history`
 - **Method:** `GET`
 - **Description:** Retrieves historical transactions within the specified date range.
-- **Parameters:**
+- **Query Parameters:**
   - `dateFrom` (required string)
   - `dateTo` (required string)
 
@@ -247,7 +247,6 @@
 - **Parameters:**
   - `batchId` (string): The ID of the historical transaction batch.
 - **Query Parameters:**
-  - `cursor` (optional string): An optional string to paginate through the transactions.
   - `offset` (optional number string): An optional number string to specify the starting point of the transactions.
   - `take` (optional number string): An optional number string to specify the number of transactions to retrieve, with values between 10 and 50.
 

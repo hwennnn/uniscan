@@ -62,18 +62,22 @@ Please refer to the [API documentation](docs/API_DOCUMENTATION.md) for more info
 For the backend, the following technologies were chosen:
 
 - **NestJS**
-- **Prisma**:
+- **Prisma**
 - **PostgreSQL**
 - **Redis**
 - **BullMQ**
-
-For the backend, I am using **NestJS**, **Prisma**, **PostgreSQL**, **Redis**, and **BullMQ** to effectively handle high transaction throughput which is required in this project. I am also more familiar with **NestJS**, **Prisma**, and **PostgreSQL** so that helps a lot to complete this in a short amount of time. **Redis** plays a crucial role in caching frequently accessed queries such as the latest ethereum price and integrates seamlessly with **BullMQ** to distribute workload across the queue. By utilizing a message queue, I have decoupled the processing of historical transaction batches from the main server operations. Jobs are executed through the queue, and the client continuously polls to check the status of these jobs, ensuring a more efficient workflow.
+- **ethers**
+- **Typescript**
+  
+For the backend, I am using **NestJS**, **Prisma**, **PostgreSQL**, **Redis**, and **BullMQ** to effectively handle high transaction throughput which is required in this project. I am also more familiar with **NestJS**, **Prisma**, and **PostgreSQL** so that helps a lot to complete this in a short amount of time. I choose **PostgreSQL** as it's a powerful relational database that offers robust data integrity and supports complex queries. **Redis** plays a crucial role in caching frequently accessed queries such as the latest ethereum price and integrates seamlessly with **BullMQ** to distribute workload across the queue. By utilizing a message queue, I have decoupled the processing of historical transaction batches from the main server operations. Jobs are executed through the queue, and the client continuously polls to check the status of these jobs, ensuring a more efficient workflow.
 
 ### Frontend Architecture
 
 For the frontend, the chosen technologies include:
 
 - **Vite**
+- **Tailwind CSS**
+- **Typescript**
 - **React Query**
 
 For the frontend, I am using **Vite** alongside **React Query**. **React Query** provides query optimization and offers numerous built-in features for managing complex queries and pagination.
