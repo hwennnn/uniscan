@@ -1,7 +1,19 @@
 import React, { useState } from "react";
 import { useSearchTransactionByHashQuery } from "../core/queries/search-transaction-by-hash";
 
-const SearchInput: React.FC = () => {
+/**
+ * SearchInput component allows users to search for a transaction by its hash.
+ * It maintains the search query state and triggers a search when the form is submitted.
+ *
+ * @component
+ * @example
+ * return (
+ *   <SearchInput />
+ * )
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
+const SearchInput: React.FC = (): JSX.Element => {
   const [query, setQuery] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
 
@@ -19,9 +31,14 @@ const SearchInput: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query?.trim().length === 0) return;
 
-    setSearchQuery(query?.trim());
+    // Trim the query
+    const currentQuery = query?.trim();
+
+    // If the query is empty, do nothing
+    if (currentQuery?.length === 0) return;
+
+    setSearchQuery(currentQuery);
   };
 
   return (
@@ -36,6 +53,7 @@ const SearchInput: React.FC = () => {
         />
       </form>
 
+      {/* Display the search result if a query has been made */}
       {searchQuery !== undefined && (
         <div className="mb-4 flex w-full flex-col justify-between bg-gray-100 p-4 rounded-lg shadow-md mt-2 overflow-hidden">
           <h2 className="text-lg font-semibold mb-2 truncate">
