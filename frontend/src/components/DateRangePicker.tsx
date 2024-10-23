@@ -29,8 +29,12 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       return;
     }
 
-    const startInMs = new Date(startDate.setHours(0, 0, 0, 0)).getTime();
-    let endInMs = new Date(endDate.setHours(23, 59, 59, 999)).getTime();
+    const startInMs = new Date(
+      new Date(startDate).setHours(0, 0, 0, 0)
+    ).getTime();
+    let endInMs = new Date(
+      new Date(endDate).setHours(23, 59, 59, 999)
+    ).getTime();
     if (endDate.toISOString().split("T")[0] === today) {
       const currentTime = new Date().getTime();
       endInMs = Math.min(currentTime, endInMs);
