@@ -33,9 +33,11 @@ const columns: ColumnDef<HistoricalTransaction>[] = [
   },
 ];
 
-const TransactionsTable = () => {
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
+type TablePaginationState = PaginationState & {
+  cursor: string | undefined | null;
+};
 
+const TransactionsTable = () => {
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
 
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
@@ -43,9 +45,10 @@ const TransactionsTable = () => {
   const showHistoricalData = dateRange !== null;
 
   // Define pagination state
-  const [pagination, setPagination] = useState<PaginationState>({
+  const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
-    pageSize: DEFAULT_TRANSACTIONS_PER_PAGE, // Set initial page size to 10
+    pageSize: DEFAULT_TRANSACTIONS_PER_PAGE, // Set initial page size to 10,
+    cursor: undefined,
   });
 
   const {
@@ -55,7 +58,7 @@ const TransactionsTable = () => {
   } = useTransactionsQuery({
     variables: {
       take: pagination.pageSize,
-      cursor,
+      cursor: pagination.cursor ?? undefined,
       offset: pagination.pageIndex * pagination.pageSize,
     },
     enabled: !showHistoricalData,
@@ -108,6 +111,22 @@ const TransactionsTable = () => {
     }
   }, [historicalTransactions, showHistoricalData, transactionsPage]);
 
+  const handleUpdateCursor = (cursor: string | undefined) => {
+    setPagination((prev) => ({
+      ...prev,
+      cursor,
+    }));
+  };
+
+  const handleUpdatePagination: React.Dispatch<
+    React.SetStateAction<PaginationState>
+  > = (state) => {
+    setPagination((prev) => ({
+      ...prev,
+      ...state,
+    }));
+  };
+
   useEffect(() => {
     if (batchInfo !== undefined) {
       setBatchStatus(batchInfo?.status);
@@ -115,10 +134,10 @@ const TransactionsTable = () => {
   }, [batchInfo]);
 
   useEffect(() => {
-    if (!cursor && transactions.length > 0) {
-      setCursor(transactions[0].id.toString());
+    if (pagination.cursor === undefined && transactions.length > 0) {
+      handleUpdateCursor(transactions[0].id.toString());
     }
-  }, [cursor, transactions]);
+  }, [pagination.cursor, transactions]);
 
   const totalPages = useMemo(() => {
     if (showHistoricalData) {
@@ -140,15 +159,18 @@ const TransactionsTable = () => {
     state: {
       pagination,
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: handleUpdatePagination,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     debugTable: true,
   });
 
   const handleRefresh = () => {
-    setPagination({ pageIndex: 0, pageSize: DEFAULT_TRANSACTIONS_PER_PAGE });
-    setCursor(undefined);
+    setPagination({
+      pageIndex: 0,
+      pageSize: DEFAULT_TRANSACTIONS_PER_PAGE,
+      cursor: null,
+    });
     refetchSummary();
     refetchTransactions();
   };
