@@ -7,14 +7,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { Transaction } from "../core/models/transaction";
+import { BatchStatus, HistoricalTransaction } from "../core/models/transaction";
+import { useHistoricalTransactions } from "../core/queries/get-historical-transactions";
+import { useHistoricalTransactionsBatchInfo } from "../core/queries/get-historical-transactions-batch-info";
 import { useTransactionsQuery } from "../core/queries/get-transactions";
 import { useTransactionsSummaryQuery } from "../core/queries/get-transactions-summary";
+import { useSearchHistorialTransactions } from "../core/queries/search-historical-transactions";
+import DateRangePicker from "./DateRangePicker";
 
 const DEFAULT_TRANSACTIONS_PER_PAGE = 10; // Set to 10 to show a maximum of 10 transactions per page
 
 // Define columns for the table
-const columns: ColumnDef<Transaction>[] = [
+const columns: ColumnDef<HistoricalTransaction>[] = [
   {
     accessorKey: "transactionHash",
     header: "Transaction Hash",
@@ -30,7 +34,13 @@ const columns: ColumnDef<Transaction>[] = [
 ];
 
 const TransactionsTable = () => {
-  const [cursor, setCursor] = useState<undefined | string>(undefined);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+
+  const [dateRange, setDateRange] = useState<[number, number] | null>(null);
+
+  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
+
+  const showHistoricalData = dateRange !== null;
 
   // Define pagination state
   const [pagination, setPagination] = useState<PaginationState>({
@@ -48,21 +58,61 @@ const TransactionsTable = () => {
       cursor,
       offset: pagination.pageIndex * pagination.pageSize,
     },
+    enabled: !showHistoricalData,
     placeholderData: keepPreviousData,
   });
 
   const { data: summary = null, refetch: refetchSummary } =
     useTransactionsSummaryQuery({
       staleTime: Infinity,
+      enabled: !showHistoricalData,
     });
 
-  const transactions = useMemo(() => {
-    if (!transactionsPage) {
-      return [];
-    }
+  const { data: initialBatchInfo } = useSearchHistorialTransactions({
+    variables: {
+      dateFrom: dateRange?.[0] ?? 0,
+      dateTo: dateRange?.[1] ?? 0,
+    },
+    enabled: showHistoricalData,
+  });
 
-    return transactionsPage.transactions;
-  }, [transactionsPage]);
+  const { data: batchInfo } = useHistoricalTransactionsBatchInfo({
+    variables: {
+      batchId: initialBatchInfo?.id.toString() ?? "",
+    },
+    enabled:
+      showHistoricalData &&
+      (initialBatchInfo?.id !== undefined ||
+        batchStatus === BatchStatus.IN_PROGRESS ||
+        batchStatus === BatchStatus.PENDING),
+    refetchInterval: 1000, // poll the batchStatus every second
+  });
+
+  const { data: historicalTransactions } = useHistoricalTransactions({
+    variables: {
+      batchId: initialBatchInfo?.id ?? 0,
+      offset: pagination.pageIndex * pagination.pageSize,
+      take: pagination.pageSize,
+    },
+    enabled:
+      showHistoricalData &&
+      batchInfo !== null &&
+      batchInfo?.status === BatchStatus.COMPLETED,
+  });
+
+  const transactions = useMemo(() => {
+    if (!showHistoricalData) {
+      return transactionsPage ? transactionsPage.transactions : [];
+    } else {
+      return historicalTransactions ? historicalTransactions.transactions : [];
+    }
+  }, [historicalTransactions, showHistoricalData, transactionsPage]);
+
+  useEffect(() => {
+    if (batchInfo !== undefined) {
+      setBatchStatus(batchInfo?.status);
+    }
+  }, [batchInfo]);
 
   useEffect(() => {
     if (!cursor && transactions.length > 0) {
@@ -70,10 +120,22 @@ const TransactionsTable = () => {
     }
   }, [cursor, transactions]);
 
+  const totalPages = useMemo(() => {
+    if (showHistoricalData) {
+      return historicalTransactions?.totalPages || 0;
+    }
+
+    return transactionsPage?.totalPages || 0;
+  }, [
+    historicalTransactions?.totalPages,
+    showHistoricalData,
+    transactionsPage?.totalPages,
+  ]);
+
   // Initialize table instance
   const table = useReactTable({
     data: transactions,
-    pageCount: transactionsPage?.totalPages || 0,
+    pageCount: totalPages,
     columns,
     state: {
       pagination,
@@ -91,10 +153,16 @@ const TransactionsTable = () => {
     refetchTransactions();
   };
 
+  const handleDateRangeChange = (range: [number, number] | null) => {
+    setDateRange(range);
+  };
+
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg">
-      <div className="mb-4 flex flex-row items-end justify-between bg-gray-100 p-4 rounded-lg shadow-md">
-        {summary !== null && (
+    <div className="p-4 bg-white shadow-md rounded-lg py-2">
+      <DateRangePicker onDateRangeChange={handleDateRangeChange} />
+
+      {!showHistoricalData && summary !== null && (
+        <div className="my-4 flex flex-row items-end justify-between bg-gray-100 p-4 rounded-lg shadow-md">
           <div className="flex-1 ">
             <h2 className="text-lg font-semibold mb-2">Summary</h2>
             <div className="text-md">
@@ -112,18 +180,73 @@ const TransactionsTable = () => {
               </p>
             </div>
           </div>
-        )}
 
-        <div className="flex items-end">
-          <button
-            className="border rounded p-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-            onClick={handleRefresh}
-            title="This will reset the pagination and refresh the summary data."
-          >
-            Refresh
-          </button>
+          <div className="flex items-end">
+            <button
+              className="border rounded p-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+              onClick={handleRefresh}
+              title="This will reset the pagination and refresh the summary data."
+            >
+              Refresh
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {showHistoricalData && (
+        <div className="my-4 flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-md">
+          <p className="text-md mb-2">
+            Searching historical transactions from
+            <span className="ml-1 font-medium">
+              {new Date(dateRange[0]).toDateString()}
+            </span>{" "}
+            to
+            <span className="ml-1 font-medium">
+              {new Date(dateRange[1]).toDateString()}
+            </span>
+          </p>
+
+          {batchInfo !== undefined && (
+            <div className="text-md">
+              <p className="mb-1">
+                Batch Status:{" "}
+                <span
+                  className={`font-medium ${
+                    batchStatus === BatchStatus.IN_PROGRESS
+                      ? "text-yellow-500"
+                      : batchStatus === BatchStatus.PENDING
+                      ? "text-orange-500"
+                      : batchStatus === BatchStatus.COMPLETED
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {batchStatus === BatchStatus.IN_PROGRESS
+                    ? "In Progress"
+                    : batchStatus === BatchStatus.PENDING
+                    ? "Pending"
+                    : batchStatus === BatchStatus.COMPLETED
+                    ? "Completed"
+                    : "Unknown"}
+                </span>
+              </p>
+              <p className="mb-1">
+                Total Transactions:{" "}
+                <span className="font-medium">{batchInfo?.totalTxns}</span>
+              </p>
+              <p className="mb-1">
+                Total Fees in ETH:{" "}
+                <span className="font-medium">{batchInfo.totalFeeInEth}</span>
+              </p>
+              <p className="mb-1">
+                Total Fees in USDT:{" "}
+                <span className="font-medium">{batchInfo.totalFeeInUsdt}</span>
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

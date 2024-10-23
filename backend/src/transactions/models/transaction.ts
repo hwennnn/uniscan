@@ -66,12 +66,6 @@ export interface EtherscanHistorialTransaction {
   confirmations: string;
 }
 
-export interface QueryTransactions {
-  transactions: QueryTransaction[];
-  hasMore: boolean;
-  page: number;
-}
-
 export interface PaginatedTransactions {
   transactions: Transaction[];
   currentPage: number;

@@ -1,5 +1,4 @@
 import Dashboard from "./components/Dashboard";
-import DateRangePicker from "./components/DateRangePicker";
 import SearchInput from "./components/SearchInput";
 import TransactionsTable from "./components/TransactionsTable";
 
@@ -8,7 +7,6 @@ const MainScreen = () => {
     <>
       <Dashboard />
       <SearchInput />
-      <DateRangePicker onDateRangeChange={() => {}} />
       <TransactionsTable />
     </>
   );

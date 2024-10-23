@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface DateRangePickerProps {
-  onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
+  onDateRangeChange: (dateRange: [number, number] | null) => void;
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({
@@ -15,27 +15,39 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   ) => {
     const date = event.target.value ? new Date(event.target.value) : null;
     setStartDate(date);
-    onDateRangeChange(date, endDate);
   };
 
   const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const date = event.target.value ? new Date(event.target.value) : null;
     setEndDate(date);
-    onDateRangeChange(startDate, date);
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (startDate === null || endDate === null) return;
+    if (startDate === null || endDate === null) {
+      onDateRangeChange(null);
+      return;
+    }
 
-    onDateRangeChange(startDate, endDate);
+    const startInMs = new Date(startDate.setHours(0, 0, 0, 0)).getTime();
+    let endInMs = new Date(endDate.setHours(23, 59, 59, 999)).getTime();
+    if (endDate.toISOString().split("T")[0] === today) {
+      const currentTime = new Date().getTime();
+      endInMs = Math.min(currentTime, endInMs);
+    }
+
+    if (startInMs > endInMs) {
+      return;
+    }
+
+    onDateRangeChange([startInMs, endInMs]);
   };
 
   const today = new Date().toISOString().split("T")[0];
 
   return (
     <form
-      className="flex flex-col gap-2 p-2 rounded-lg border border-gray-300 bg-gray-50 w-80 mx-auto mt-4"
+      className="flex flex-col gap-2 p-2 rounded-lg border border-gray-300 bg-gray-50 max-w-80 mx-auto mt-4"
       onSubmit={handleSubmit}
     >
       <div className="flex gap-2 justify-between">

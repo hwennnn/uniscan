@@ -19,9 +19,9 @@ const SearchInput: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query === "") return;
+    if (query?.trim().length === 0) return;
 
-    setSearchQuery(query);
+    setSearchQuery(query?.trim());
   };
 
   return (
