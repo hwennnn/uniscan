@@ -1,13 +1,16 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { Summary } from '@prisma/client';
+import { HistoricalTransactionsBatch, Summary } from '@prisma/client';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
 import {
+  PaginatedHistoricalTransactions,
   PaginatedTransactions,
   QueryTransaction,
-  QueryTransactions,
 } from 'src/transactions/models/transaction';
 import { TransactionsService } from 'src/transactions/transactions.service';
-import { GetHistoricalTransactionsDto } from './dto/get-historical-transactions.dto';
+import {
+  GetHistoricaBatchTransactionsDto,
+  GetHistoricalTransactionsByDatesDto,
+} from './dto/get-historical-transactions.dto';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -27,17 +30,42 @@ export class TransactionsController {
   }
 
   @Get('history')
-  async getHistoricalTransactionsDto(
-    @Query() dto: GetHistoricalTransactionsDto,
-  ): Promise<QueryTransactions> {
-    const parsedDto: GetHistoricalTransactionsDto = {
+  async getHistoricalTransactionsByDates(
+    @Query() dto: GetHistoricalTransactionsByDatesDto,
+  ): Promise<HistoricalTransactionsBatch> {
+    const parsedDto: GetHistoricalTransactionsByDatesDto = {
       dateFrom: dto.dateFrom.toString(),
       dateTo: dto.dateTo.toString(),
-      offset: dto.offset !== undefined ? +dto.offset : undefined,
-      page: dto.page !== undefined ? +dto.page : undefined,
     };
 
-    return await this.transactionService.findHistoricalTransactions(parsedDto);
+    return await this.transactionService.findHistoricalTransactionsByDates(
+      parsedDto,
+    );
+  }
+
+  @Get('history/:batchId/info')
+  async getHistoricalBatchInfo(
+    @Param('batchId') batchId: string,
+  ): Promise<HistoricalTransactionsBatch> {
+    return await this.transactionService.findHistoricalTransactionsBatch(
+      batchId,
+    );
+  }
+
+  @Get('history/:batchId')
+  async getHistoricalBatchTransactions(
+    @Param('batchId') batchId: string,
+    @Query() dto: GetHistoricaBatchTransactionsDto,
+  ): Promise<PaginatedHistoricalTransactions> {
+    const parsedDto: GetHistoricaBatchTransactionsDto = {
+      offset: dto.offset !== undefined ? +dto.offset : undefined,
+      take: dto.take !== undefined ? +dto.take : undefined,
+    };
+
+    return await this.transactionService.findHistoricalBatchTransactions(
+      batchId,
+      parsedDto,
+    );
   }
 
   @Get('summary')

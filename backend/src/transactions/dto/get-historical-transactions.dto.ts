@@ -5,8 +5,9 @@ import {
   Validate,
 } from 'class-validator';
 import { ValidDateRange } from 'src/transactions/decorators/valid-date-range';
+import { ValidNumberRangeValue } from 'src/transactions/decorators/valid-number-range-value';
 
-export class GetHistoricalTransactionsDto {
+export class GetHistoricalTransactionsByDatesDto {
   @IsNotEmpty()
   @IsNumberString()
   dateFrom: string;
@@ -15,12 +16,15 @@ export class GetHistoricalTransactionsDto {
   @IsNumberString()
   @Validate(ValidDateRange)
   dateTo: string;
+}
 
+export class GetHistoricaBatchTransactionsDto {
   @IsOptional()
   @IsNumberString()
   offset?: number;
 
   @IsOptional()
   @IsNumberString()
-  page?: number;
+  @Validate(ValidNumberRangeValue, [10, 50])
+  take?: number;
 }

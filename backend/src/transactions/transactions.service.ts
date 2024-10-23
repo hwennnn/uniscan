@@ -5,11 +5,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Summary } from '@prisma/client';
+import {
+  BatchStatus,
+  HistoricalTransactionsBatch,
+  Summary,
+} from '@prisma/client';
 import axios from 'axios';
 import { EthPriceService } from 'src/eth-price/eth-price.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { GetHistoricalTransactionsDto } from 'src/transactions/dto/get-historical-transactions.dto';
+import {
+  GetHistoricaBatchTransactionsDto,
+  GetHistoricalTransactionsByDatesDto,
+} from 'src/transactions/dto/get-historical-transactions.dto';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
 import {
   ETHERSCAN_API_BLOCK_NUMBER_URL,
@@ -20,6 +27,7 @@ import {
   EtherscanBlockResponse,
   EtherscanHistorialTransactionResponse,
   InfuraTransactionResponse,
+  PaginatedHistoricalTransactions,
   PaginatedTransactions,
   QueryTransaction,
   QueryTransactions,
@@ -138,25 +146,133 @@ export class TransactionsService {
     return transaction;
   }
 
-  async findHistoricalTransactions(
-    dto: GetHistoricalTransactionsDto,
-  ): Promise<QueryTransactions> {
+  async findHistoricalTransactionsByDates(
+    dto: GetHistoricalTransactionsByDatesDto,
+  ): Promise<HistoricalTransactionsBatch> {
+    const { dateFrom, dateTo } = dto;
+
     const [startBlock, endBlock] = await Promise.all([
-      this.getBlockNumberByTimestamp(dto.dateFrom, 'after'),
-      this.getBlockNumberByTimestamp(dto.dateTo, 'before'),
+      this.getBlockNumberByTimestamp(dateFrom, 'after'),
+      this.getBlockNumberByTimestamp(dateTo, 'before'),
     ]);
 
-    const page = dto.page ?? 1;
-    const offset = dto.offset ?? 100;
+    const batch = await this.prismaService.historicalTransactionsBatch.create({
+      data: {
+        startBlock,
+        endBlock,
+        dateFrom,
+        dateTo,
+      },
+    });
 
-    const transactions = await this.getHistoricalTransactionsByBatch(
-      startBlock,
-      endBlock,
-      page,
-      offset,
-    );
+    // const transactions = await this.getHistoricalTransactionsByBatch(
+    //   startBlock,
+    //   endBlock,
+    //   page,
+    //   offset,
+    // );
 
-    return transactions;
+    return batch;
+  }
+
+  async findHistoricalTransactionsBatch(
+    batchId: string,
+  ): Promise<HistoricalTransactionsBatch> {
+    const batch = await this.prismaService.historicalTransactionsBatch
+      .findFirstOrThrow({
+        where: {
+          id: +batchId,
+        },
+      })
+      .catch((e) => {
+        this.logger.error(
+          `Failed to find historical transactions batch by ${batchId}`,
+          e instanceof Error ? e.stack : undefined,
+          TransactionsService.name,
+        );
+
+        throw new NotFoundException(
+          `Failed to find historical transactions batch by ${batchId}`,
+        );
+      });
+
+    return batch;
+  }
+
+  async findHistoricalBatchTransactions(
+    batchId: string,
+    dto: GetHistoricaBatchTransactionsDto,
+  ): Promise<PaginatedHistoricalTransactions> {
+    const batch = await this.prismaService.historicalTransactionsBatch
+      .findFirstOrThrow({
+        where: {
+          id: +batchId,
+        },
+      })
+      .catch((e) => {
+        this.logger.error(
+          `Failed to find historical transactions batch by ${batchId}`,
+          e instanceof Error ? e.stack : undefined,
+          TransactionsService.name,
+        );
+
+        throw new NotFoundException(
+          `Failed to find historical transactions batch by ${batchId}`,
+        );
+      });
+
+    if (batch.status !== BatchStatus.COMPLETED) {
+      this.logger.error(`The batch with id ${batchId} is not completed yet`);
+
+      throw new BadRequestException(
+        `The batch with id ${batchId} is not completed yet`,
+      );
+    }
+
+    const limit = dto.take ?? 50;
+    const offset = dto.offset ?? 0;
+
+    // Step 1: Count total transactions to calculate totalPages
+    const totalTransactions = await this.prismaService.transaction.count({});
+
+    const transactions = await this.prismaService.historicalTransaction
+      .findMany({
+        where: {
+          batchId: +batchId,
+        },
+        take: limit + 1,
+        skip: offset,
+        orderBy: {
+          id: 'desc',
+        },
+      })
+      .catch((e) => {
+        this.logger.error(
+          `Failed to find historical transactions for ${batchId}`,
+          e instanceof Error ? e.stack : undefined,
+          TransactionsService.name,
+        );
+
+        throw new BadRequestException(
+          `Failed to find historical transactions for ${batchId}`,
+        );
+      });
+
+    const hasMore = transactions.length === limit + 1;
+
+    if (hasMore) {
+      transactions.pop();
+    }
+
+    // Step 4: Calculate totalPages and currentPage
+    const totalPages = Math.ceil(totalTransactions / limit);
+    const currentPage = Math.floor(offset / limit) + 1;
+
+    return {
+      transactions,
+      totalPages,
+      currentPage,
+    };
   }
 
   private async getHistoricalTransactionsByBatch(

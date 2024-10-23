@@ -1,4 +1,4 @@
-import { Transaction } from '@prisma/client';
+import { HistoricalTransaction, Transaction } from '@prisma/client';
 
 export interface InfuraTransactionResponse {
   jsonrpc: string;
@@ -74,6 +74,12 @@ export interface QueryTransactions {
 
 export interface PaginatedTransactions {
   transactions: Transaction[];
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface PaginatedHistoricalTransactions {
+  transactions: HistoricalTransaction[];
   currentPage: number;
   totalPages: number;
 }

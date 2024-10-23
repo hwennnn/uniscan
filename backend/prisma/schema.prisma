@@ -39,3 +39,32 @@ model Summary {
   totalFeeUSDT Float    @default(0)
   updatedAt    DateTime @updatedAt
 }
+
+enum BatchStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model HistoricalTransactionsBatch {
+  id         Int         @id @default(autoincrement())
+  startBlock Int
+  endBlock   Int
+  dateFrom   String
+  dateTo     String
+  totalTxns  Int         @default(0)
+  status     BatchStatus @default(PENDING)
+  updatedAt  DateTime    @updatedAt
+
+  historicalTransactions HistoricalTransaction[]
+}
+
+model HistoricalTransaction {
+  id              Int                         @id @default(autoincrement())
+  transactionHash String
+  feeInEth        String
+  feeInUsdt       String
+  batchId         Int
+  batch           HistoricalTransactionsBatch @relation(fields: [batchId], references: [id])
+}
