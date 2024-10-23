@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { HistoricalTransactionsBatch, Summary } from '@prisma/client';
 import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
+import { HistoricalTransactionsService } from 'src/transactions/historical.transactions.service';
 import {
   PaginatedHistoricalTransactions,
   PaginatedTransactions,
@@ -14,7 +15,10 @@ import {
 
 @Controller('transactions')
 export class TransactionsController {
-  constructor(private readonly transactionService: TransactionsService) {}
+  constructor(
+    private readonly transactionsService: TransactionsService,
+    private readonly historialTransactionService: HistoricalTransactionsService,
+  ) {}
 
   @Get()
   async findTransactions(
@@ -26,7 +30,7 @@ export class TransactionsController {
       take: dto.take !== undefined ? +dto.take : undefined,
     };
 
-    return await this.transactionService.findTransactions(parsedDto);
+    return await this.transactionsService.findTransactions(parsedDto);
   }
 
   @Get('history')
@@ -38,7 +42,7 @@ export class TransactionsController {
       dateTo: dto.dateTo.toString(),
     };
 
-    return await this.transactionService.findHistoricalTransactionsByDates(
+    return await this.historialTransactionService.findHistoricalTransactionsByDates(
       parsedDto,
     );
   }
@@ -47,7 +51,7 @@ export class TransactionsController {
   async getHistoricalBatchInfo(
     @Param('batchId') batchId: string,
   ): Promise<HistoricalTransactionsBatch> {
-    return await this.transactionService.findHistoricalTransactionsBatch(
+    return await this.historialTransactionService.findHistoricalTransactionsBatch(
       batchId,
     );
   }
@@ -62,7 +66,7 @@ export class TransactionsController {
       take: dto.take !== undefined ? +dto.take : undefined,
     };
 
-    return await this.transactionService.findHistoricalBatchTransactions(
+    return await this.historialTransactionService.findHistoricalBatchTransactions(
       batchId,
       parsedDto,
     );
@@ -70,13 +74,13 @@ export class TransactionsController {
 
   @Get('summary')
   async getTransactionsSummary(): Promise<Summary | null> {
-    return await this.transactionService.getTransactionsSummary();
+    return await this.transactionsService.getTransactionsSummary();
   }
 
   @Get(':hash')
   async findTransaction(
     @Param('hash') hash: string,
   ): Promise<QueryTransaction | null> {
-    return await this.transactionService.findTransaction(hash);
+    return await this.transactionsService.findTransaction(hash);
   }
 }

@@ -83,3 +83,10 @@ export interface PaginatedHistoricalTransactions {
   currentPage: number;
   totalPages: number;
 }
+
+export interface HistoricalTransactionsJobData {
+  batchId: number;
+  startBlock: number;
+  endBlock: number;
+  page: number;
+}

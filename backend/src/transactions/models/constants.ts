@@ -29,3 +29,5 @@ export const ETHERSCAN_API_TOKEN_TRANSACTIONS_URL = (
   apiKey: string,
 ) =>
   `${ETHERSCAN_API_BASE_URL}?module=account&action=tokentx&address=${USDC_ETH_POOL_ADDRESS}&page=${page}&offset=${offset}&startblock=${startBlock}&endblock=${endBlock}&sort=desc&apikey=${apiKey}`;
+
+export const DEFAULT_HISTORICAL_TRANSACTIONS_PAGE_SIZE = 100;
