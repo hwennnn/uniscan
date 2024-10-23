@@ -18,7 +18,7 @@ export class TransactionsConsumer extends WorkerHost {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    this.logger.log('Processing job ', job.id, job.data);
+    this.logger.log('Transactions MQ: Processing job ', job.id, job.name);
 
     switch (job.name) {
       case TransactionJob.ProcessHistoricalTransactions:

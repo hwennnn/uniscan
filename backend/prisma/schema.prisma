@@ -48,14 +48,16 @@ enum BatchStatus {
 }
 
 model HistoricalTransactionsBatch {
-  id         Int         @id @default(autoincrement())
-  startBlock Int
-  endBlock   Int
-  dateFrom   String
-  dateTo     String
-  totalTxns  Int         @default(0)
-  status     BatchStatus @default(PENDING)
-  updatedAt  DateTime    @updatedAt
+  id             Int         @id @default(autoincrement())
+  startBlock     Int
+  endBlock       Int
+  dateFrom       String
+  dateTo         String
+  totalFeeInEth  Float       @default(0)
+  totalFeeInUsdt Float       @default(0)
+  totalTxns      Int         @default(0)
+  status         BatchStatus @default(PENDING)
+  updatedAt      DateTime    @updatedAt
 
   historicalTransactions HistoricalTransaction[]
 }

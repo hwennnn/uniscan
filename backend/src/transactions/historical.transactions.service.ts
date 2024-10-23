@@ -190,6 +190,9 @@ export class HistoricalTransactionsService {
 
     const processedHashes = new Set<string>(); // Set to track unique transaction hashes
 
+    const ethPriceInUsdt = (await this.ethPriceService.getLatestEthPrice())
+      .price;
+
     const formattedTransactions = await Promise.all(
       transactions.map(async (transaction) => {
         if (processedHashes.has(transaction.hash)) {
@@ -203,7 +206,11 @@ export class HistoricalTransactionsService {
         const gasUsed = BigInt(transaction.gas);
 
         const { feeInEth, feeInUsdt } =
-          await this.ethPriceService.calculateFeeInUsdt(gasPrice, gasUsed);
+          await this.ethPriceService.calculateFeeInUsdt(
+            gasPrice,
+            gasUsed,
+            ethPriceInUsdt,
+          );
 
         const data: QueryTransaction = {
           transactionHash: transaction.hash,
@@ -220,7 +227,12 @@ export class HistoricalTransactionsService {
       (transaction) => transaction !== null,
     );
 
+    let totalFeeInEth: number = 0;
+    let totalFeeInUsdt: number = 0;
+
     for (const transaction of filteredTransactions) {
+      totalFeeInEth += parseFloat(transaction.feeInEth);
+      totalFeeInUsdt += parseFloat(transaction.feeInUsdt);
       await this.prismaService.historicalTransaction.create({
         data: {
           batchId,
@@ -239,6 +251,12 @@ export class HistoricalTransactionsService {
         status: hasMore ? BatchStatus.IN_PROGRESS : BatchStatus.COMPLETED,
         totalTxns: {
           increment: filteredTransactions.length,
+        },
+        totalFeeInEth: {
+          increment: totalFeeInEth,
+        },
+        totalFeeInUsdt: {
+          increment: totalFeeInUsdt,
         },
       },
     });

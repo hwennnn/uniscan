@@ -91,6 +91,7 @@ export class EthPriceService {
   async calculateFeeInUsdt(
     gasPrice: bigint,
     gasUsed: bigint,
+    ethPriceInUsdt?: number,
   ): Promise<{
     feeInUsdt: string;
     feeInEth: string;
@@ -98,7 +99,7 @@ export class EthPriceService {
     const gasInWei = gasPrice * gasUsed;
     const feeInEth = formatEther(gasInWei); // Multiply gasPrice by gasUsed to get fee in Wei
 
-    const ethPriceInUsdt = (await this.getLatestEthPrice()).price;
+    ethPriceInUsdt ??= (await this.getLatestEthPrice()).price;
 
     const feeInUsdt = (parseFloat(feeInEth) * ethPriceInUsdt).toString(); // Multiply feeInEth by ETH price to get fee in USDT
 

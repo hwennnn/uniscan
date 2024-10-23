@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "HistoricalTransactionsBatch" ADD COLUMN     "totalFeeInEth" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "totalFeeInUsdt" DOUBLE PRECISION NOT NULL DEFAULT 0;
