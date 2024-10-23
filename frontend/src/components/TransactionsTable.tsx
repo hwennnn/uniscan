@@ -123,7 +123,7 @@ const TransactionsTable = () => {
   > = (state) => {
     setPagination((prev) => ({
       ...prev,
-      ...state,
+      ...(typeof state === "function" ? state(prev) : state), // Handle function or object-based updates
     }));
   };
 
@@ -377,13 +377,15 @@ const TransactionsTable = () => {
         </div>
 
         <div className="flex flex-col space-y-2 items-center">
-          <span className="flex items-center gap-1">
-            <div>Page</div>
-            <strong>
-              {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount().toLocaleString()}
-            </strong>
-          </span>
+          {table.getPageCount() !== 0 && (
+            <span className="flex items-center gap-1">
+              <div>Page</div>
+              <strong>
+                {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount().toLocaleString()}
+              </strong>
+            </span>
+          )}
 
           <select
             value={table.getState().pagination.pageSize}
