@@ -1,10 +1,10 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Logger, Module } from '@nestjs/common';
-import { EthPriceModule } from 'src/eth-price/eth-price.module';
-import { HistoricalTransactionsService } from 'src/transactions/historical.transactions.service';
-import { TransactionsConsumer } from 'src/transactions/transactions.consumer';
-import { TransactionsListenerService } from 'src/transactions/transactions.listener.service';
+import { EthPriceModule } from '../eth-price/eth-price.module';
+import { HistoricalTransactionsService } from './historical.transactions.service';
+import { TransactionsConsumer } from './transactions.consumer';
 import { TransactionsController } from './transactions.controller';
+import { TransactionsListenerService } from './transactions.listener.service';
 import { TransactionsService } from './transactions.service';
 
 @Module({

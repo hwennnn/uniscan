@@ -9,24 +9,24 @@ import { ConfigService } from '@nestjs/config';
 import { BatchStatus, HistoricalTransactionsBatch } from '@prisma/client';
 import axios from 'axios';
 import { Queue } from 'bullmq';
-import { EthPriceService } from 'src/eth-price/eth-price.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { EthPriceService } from '../eth-price/eth-price.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   GetHistoricaBatchTransactionsDto,
   GetHistoricalTransactionsByDatesDto,
-} from 'src/transactions/dto/get-historical-transactions.dto';
+} from './dto/get-historical-transactions.dto';
 import {
   DEFAULT_HISTORICAL_TRANSACTIONS_PAGE_SIZE,
   ETHERSCAN_API_BLOCK_NUMBER_URL,
   ETHERSCAN_API_TOKEN_TRANSACTIONS_URL,
-} from 'src/transactions/models/constants';
+} from './models/constants';
 import {
   EtherscanBlockResponse,
   EtherscanHistorialTransactionResponse,
   HistoricalTransactionsJobData,
   PaginatedHistoricalTransactions,
   QueryTransaction,
-} from 'src/transactions/models/transaction';
+} from './models/transaction';
 
 /**
  * Service to handle historical transactions.

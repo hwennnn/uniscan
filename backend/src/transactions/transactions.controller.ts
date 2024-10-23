@@ -1,17 +1,17 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { HistoricalTransactionsBatch, Summary } from '@prisma/client';
-import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
-import { HistoricalTransactionsService } from 'src/transactions/historical.transactions.service';
-import {
-  PaginatedHistoricalTransactions,
-  PaginatedTransactions,
-  QueryTransaction,
-} from 'src/transactions/models/transaction';
-import { TransactionsService } from 'src/transactions/transactions.service';
 import {
   GetHistoricaBatchTransactionsDto,
   GetHistoricalTransactionsByDatesDto,
 } from './dto/get-historical-transactions.dto';
+import { GetTransactionsDto } from './dto/get-transactions.dto';
+import { HistoricalTransactionsService } from './historical.transactions.service';
+import {
+  PaginatedHistoricalTransactions,
+  PaginatedTransactions,
+  QueryTransaction,
+} from './models/transaction';
+import { TransactionsService } from './transactions.service';
 
 /**
  * Controller for handling transaction-related requests.

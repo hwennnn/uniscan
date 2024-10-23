@@ -1,8 +1,8 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { HistoricalTransactionsService } from 'src/transactions/historical.transactions.service';
-import { HistoricalTransactionsJobData } from 'src/transactions/models/transaction';
+import { HistoricalTransactionsService } from './historical.transactions.service';
+import { HistoricalTransactionsJobData } from './models/transaction';
 
 enum TransactionJob {
   ProcessHistoricalTransactions = 'process-historical-transactions',

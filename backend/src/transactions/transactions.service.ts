@@ -7,15 +7,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Summary } from '@prisma/client';
 import axios from 'axios';
-import { EthPriceService } from 'src/eth-price/eth-price.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { GetTransactionsDto } from 'src/transactions/dto/get-transactions.dto';
-import { INFURA_API_URL } from 'src/transactions/models/constants';
+import { EthPriceService } from '../eth-price/eth-price.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { GetTransactionsDto } from './dto/get-transactions.dto';
+import { INFURA_API_URL } from './models/constants';
 import {
   InfuraTransactionResponse,
   PaginatedTransactions,
   QueryTransaction,
-} from 'src/transactions/models/transaction';
+} from './models/transaction';
 
 /**
  * Service responsible for handling transactions.

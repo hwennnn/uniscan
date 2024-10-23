@@ -6,15 +6,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ContractEventPayload, ethers, WebSocketProvider } from 'ethers';
-import { EthPriceService } from 'src/eth-price/eth-price.service';
+import { EthPriceService } from '../eth-price/eth-price.service';
 
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   INFURA_WEB_SOCKET_URL,
   UNISWAP_V3_POOL_ABI,
   USDC_ETH_POOL_ADDRESS,
-} from 'src/transactions/models/constants';
-import { TransactionsService } from 'src/transactions/transactions.service';
+} from './models/constants';
+import { TransactionsService } from './transactions.service';
 
 /**
  * @class TransactionsListenerService

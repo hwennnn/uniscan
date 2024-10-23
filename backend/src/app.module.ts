@@ -2,18 +2,18 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { EthPriceModule } from 'src/eth-price/eth-price.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { RedisModule } from 'src/redis/redis.module';
 import { AppController } from './app.controller';
+import { EthPriceModule } from './eth-price/eth-price.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
 import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     // Register BullMQ module with configuration
     BullModule.forRootAsync({
       imports: [ConfigModule], // Ensure ConfigModule is imported

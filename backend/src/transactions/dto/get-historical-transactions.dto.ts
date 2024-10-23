@@ -4,8 +4,8 @@ import {
   IsOptional,
   Validate,
 } from 'class-validator';
-import { ValidDateRange } from 'src/transactions/decorators/valid-date-range';
-import { ValidNumberRangeValue } from 'src/transactions/decorators/valid-number-range-value';
+import { ValidDateRange } from '../decorators/valid-date-range';
+import { ValidNumberRangeValue } from '../decorators/valid-number-range-value';
 
 export class GetHistoricalTransactionsByDatesDto {
   @IsNotEmpty()

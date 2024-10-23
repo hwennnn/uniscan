@@ -4,7 +4,7 @@ import {
   IsString,
   Validate,
 } from 'class-validator';
-import { ValidNumberRangeValue } from 'src/transactions/decorators/valid-number-range-value';
+import { ValidNumberRangeValue } from '../decorators/valid-number-range-value';
 
 export class GetTransactionsDto {
   @IsOptional()
