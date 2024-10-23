@@ -1,0 +1,27 @@
+FROM node:20.10.0-alpine
+
+ENV NODE_ENV=production
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml files
+COPY package.json pnpm-lock.yaml ./
+
+# Install production dependencies
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the application
+RUN pnpm run build
+
+# Expose the port
+EXPOSE 5173
+
+# Start the application using serve
+CMD ["pnpm", "run", "serve"]

@@ -1,13 +1,32 @@
 FROM node:20-slim AS base
+
+# Environment variables for PNPM
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+
+# Install procps and openssl
+RUN apt-get update && apt-get install -y procps openssl
+
 WORKDIR /app
 
+# Copy package.json and pnpm-lock.yaml for dependency installation
 COPY package.json pnpm-lock.yaml ./
+
+# Install production dependencies and cache them
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
+# Install NestJS CLI and Prisma CLI globally
+RUN pnpm add -g @nestjs/cli prisma
+
+# Copy the rest of the application code
 COPY . .
+
+# Run Prisma generate
+RUN pnpm run db:generate
+
+# Build the application
 RUN pnpm run build
 
+# Command to run the application
 CMD ["pnpm", "run", "start:prod"]
