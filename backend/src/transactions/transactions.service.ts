@@ -17,10 +17,20 @@ import {
   QueryTransaction,
 } from 'src/transactions/models/transaction';
 
+/**
+ * Service responsible for handling transactions.
+ */
 @Injectable()
 export class TransactionsService {
   private readonly infuraApiKey: string;
 
+  /**
+   * Creates an instance of TransactionsService.
+   * @param prismaService - The Prisma service for database operations.
+   * @param configService - The configuration service for accessing environment variables.
+   * @param ethPriceService - The service for fetching Ethereum price data.
+   * @param logger - The logger service for logging information and errors.
+   */
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
@@ -30,6 +40,12 @@ export class TransactionsService {
     this.infuraApiKey = this.configService.get<string>('INFURA_API_KEY');
   }
 
+  /**
+   * Finds transactions based on the provided DTO.
+   * @param dto - The data transfer object containing query parameters.
+   * @returns A promise that resolves to a paginated list of transactions.
+   * @throws BadRequestException if the transactions cannot be found.
+   */
   async findTransactions(
     dto: GetTransactionsDto,
   ): Promise<PaginatedTransactions> {
@@ -50,6 +66,7 @@ export class TransactionsService {
       },
     });
 
+    // Step 2: Find transactions based on the query parameters
     const transactions = await this.prismaService.transaction
       .findMany({
         take: limit + 1,
@@ -71,6 +88,8 @@ export class TransactionsService {
         throw new BadRequestException('Failed to find transactions');
       });
 
+    // Step 3: Check if there are more transactions
+    // We are fetching limit + 1 transactions to check if there are more transactions
     const hasMore = transactions.length === limit + 1;
     if (hasMore) {
       transactions.pop();
@@ -87,6 +106,12 @@ export class TransactionsService {
     };
   }
 
+  /**
+   * Finds a transaction by its hash.
+   * @param hash - The hash of the transaction to find.
+   * @returns A promise that resolves to the transaction details or null if not found.
+   * @throws NotFoundException if the transaction with the given hash is not found.
+   */
   async findTransaction(hash: string): Promise<QueryTransaction | null> {
     const infuraApiUrl = INFURA_API_URL(this.infuraApiKey);
 
@@ -107,6 +132,8 @@ export class TransactionsService {
 
     const result = response.data.result;
 
+    // Check if the transaction was found based on the required fields
+    // which are hash, gas, and gasPrice
     if (!result || !result.hash || !result.gas || !result.gasPrice) {
       throw new NotFoundException(
         'The transaction with the given hash was not found',
@@ -128,13 +155,28 @@ export class TransactionsService {
     return transaction;
   }
 
+  /**
+   * Updates the transaction summary with the provided fees.
+   * @param feeInEth - The transaction fee in ETH.
+   * @param feeInUsdt - The transaction fee in USDT.
+   * @returns A promise that resolves when the summary is updated.
+   */
+  /**
+   * Updates the transaction summary with the provided fees.
+   * @param feeInEth - The transaction fee in ETH.
+   * @param feeInUsdt - The transaction fee in USDT.
+   * @returns A promise that resolves when the summary is updated.
+   */
   async updateSummary(feeInEth: string, feeInUsdt: string): Promise<void> {
+    // Retrieve all summaries from the database (there should be only one)
     const summaries = await this.prismaService.summary.findMany({});
 
+    // Check if there is an existing summary
     const summary = summaries.length > 0 ? summaries[0] : null;
     let newSummary: Summary;
 
     if (summary === null) {
+      // If no summary exists, create a new one with the provided fees and set total transactions to 1
       newSummary = await this.prismaService.summary.create({
         data: {
           totalFeeETH: parseFloat(feeInEth),
@@ -143,6 +185,7 @@ export class TransactionsService {
         },
       });
     } else {
+      // If a summary exists, update it by incrementing the fees and total transactions
       newSummary = await this.prismaService.summary.update({
         where: {
           id: summary.id,
@@ -166,9 +209,15 @@ export class TransactionsService {
     );
   }
 
+  /**
+   * Retrieves the transaction summary.
+   * @returns A promise that resolves to the transaction summary or null if not found.
+   */
   async getTransactionsSummary(): Promise<Summary | null> {
+    // Retrieve all summaries from the database (there should be only one)
     const summary = await this.prismaService.summary.findMany({});
 
+    // Return the first (and only) summary if it exists, otherwise return null
     return summary.length > 0 ? summary[0] : null;
   }
 }

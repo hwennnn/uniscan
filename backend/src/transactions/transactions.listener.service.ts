@@ -16,6 +16,12 @@ import {
 } from 'src/transactions/models/constants';
 import { TransactionsService } from 'src/transactions/transactions.service';
 
+/**
+ * @class TransactionsListenerService
+ * @implements {OnModuleInit, OnModuleDestroy}
+ * @description This service listens for Uniswap V3 USDC/ETH pool swap events and processes them.
+ *
+ */
 @Injectable()
 export class TransactionsListenerService
   implements OnModuleInit, OnModuleDestroy
@@ -44,7 +50,18 @@ export class TransactionsListenerService
     await this.provider.destroy();
   }
 
-  private async setupListener() {
+  /**
+   * Sets up a listener for Uniswap V3 USDC/ETH pool swap events.
+   *
+   * This method initializes a WebSocket connection to the Infura endpoint using the provided API key,
+   * creates a contract instance for the USDC/ETH pool using the Uniswap V3 pool ABI, and sets up an
+   * event listener for 'Swap' events. When a swap event occurs, the `handleSwapEvent` method is invoked.
+   *
+   * @private
+   * @async
+   * @returns {Promise<void>} A promise that resolves when the listener is successfully set up.
+   */
+  private async setupListener(): Promise<void> {
     const websocketUrl = INFURA_WEB_SOCKET_URL(this.infuraApiKey);
     this.provider = new WebSocketProvider(websocketUrl);
 
@@ -59,6 +76,20 @@ export class TransactionsListenerService
     this.logger.log('Listening for Uniswap V3 USDC/ETH pool swap events...');
   }
 
+  /**
+   * Handles the swap event by processing transaction details, calculating fees,
+   * and updating the transaction summary.
+   *
+   * @param sender - The address of the sender.
+   * @param recipient - The address of the recipient.
+   * @param _amount0 - The amount of token0 involved in the swap.
+   * @param _amount1 - The amount of token1 involved in the swap.
+   * @param _sqrtPriceX96 - The square root price of the swap.
+   * @param _liquidity - The liquidity of the swap.
+   * @param _tick - The tick of the swap.
+   * @param event - The contract event payload containing transaction and block details.
+   * @returns A promise that resolves when the swap event has been processed.
+   */
   private async handleSwapEvent(
     sender: string,
     recipient: string,
@@ -87,10 +118,12 @@ export class TransactionsListenerService
       feeInUsdt,
     };
 
+    // Save the transaction to the database
     await this.prismaService.transaction.create({
       data: transactionData,
     });
 
+    // Update the transaction summary
     await this.transactionsService.updateSummary(feeInEth, feeInUsdt);
 
     this.logger.log(

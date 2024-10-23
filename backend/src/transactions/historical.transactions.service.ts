@@ -28,10 +28,22 @@ import {
   QueryTransaction,
 } from 'src/transactions/models/transaction';
 
+/**
+ * Service to handle historical transactions.
+ */
 @Injectable()
 export class HistoricalTransactionsService {
   private readonly etherscanApiKey: string;
 
+  /**
+   * Constructor to initialize the HistoricalTransactionsService.
+   *
+   * @param prismaService - The Prisma service for database operations.
+   * @param configService - The configuration service to access environment variables.
+   * @param ethPriceService - The service to get Ethereum price data.
+   * @param logger - The logger service for logging errors and information.
+   * @param trasanctionsQueue - The message queue to handle transaction processing jobs.
+   */
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
@@ -42,11 +54,24 @@ export class HistoricalTransactionsService {
     this.etherscanApiKey = this.configService.get<string>('ETHERSCAN_API_KEY');
   }
 
+  /**
+   * Finds historical transactions by given date range.
+   * It will return the initial batch information and
+   * the queue will start processing the transactions.
+   *
+   * @param dto - Data transfer object containing dateFrom and dateTo.
+   * @returns A promise that resolves to a HistoricalTransactionsBatch.
+   */
   async findHistoricalTransactionsByDates(
     dto: GetHistoricalTransactionsByDatesDto,
   ): Promise<HistoricalTransactionsBatch> {
     const { dateFrom, dateTo } = dto;
 
+    // Get the block number for the dateFrom and dateTo timestamps
+    // We want to get the block number thast is closest to the timestamp
+    // So for dateFrom we want the block number after the timestamp
+    // And for dateTo we want the block number before the timestamp
+    // So it will still be kept within the date range
     const [startBlock, endBlock] = await Promise.all([
       this.getBlockNumberByTimestamp(dateFrom, 'after'),
       this.getBlockNumberByTimestamp(dateTo, 'before'),
@@ -61,6 +86,7 @@ export class HistoricalTransactionsService {
       },
     });
 
+    // Add the task to the message queue to start processing the transactions
     await this.trasanctionsQueue.add('process-historical-transactions', {
       startBlock,
       endBlock,
@@ -71,6 +97,12 @@ export class HistoricalTransactionsService {
     return batch;
   }
 
+  /**
+   * Finds a historical transactions batch by its ID.
+   *
+   * @param batchId - The ID of the batch to find.
+   * @returns A promise that resolves to a HistoricalTransactionsBatch.
+   */
   async findHistoricalTransactionsBatch(
     batchId: string,
   ): Promise<HistoricalTransactionsBatch> {
@@ -95,10 +127,18 @@ export class HistoricalTransactionsService {
     return batch;
   }
 
+  /**
+   * Finds transactions within a historical batch.
+   *
+   * @param batchId - The ID of the batch to find transactions for.
+   * @param dto - Data transfer object containing pagination information.
+   * @returns A promise that resolves to a PaginatedHistoricalTransactions object.
+   */
   async findHistoricalBatchTransactions(
     batchId: string,
     dto: GetHistoricaBatchTransactionsDto,
   ): Promise<PaginatedHistoricalTransactions> {
+    // Step 1: Find the batch by ID. Throw an error if not found.
     const batch = await this.prismaService.historicalTransactionsBatch
       .findFirstOrThrow({
         where: {
@@ -117,6 +157,7 @@ export class HistoricalTransactionsService {
         );
       });
 
+    // Step 2: Check if the batch is completed. Throw an error if not.
     if (batch.status !== BatchStatus.COMPLETED) {
       this.logger.error(`The batch with id ${batchId} is not completed yet`);
 
@@ -125,6 +166,7 @@ export class HistoricalTransactionsService {
       );
     }
 
+    // Step 3: Find the transactions for the batch
     const totalTransactions = batch.totalTxns;
     const limit = dto.take ?? 50;
     const offset = dto.offset ?? 0;
@@ -163,6 +205,13 @@ export class HistoricalTransactionsService {
     };
   }
 
+  /**
+   * Processes historical transactions for a given batch.
+   * This is the method that the message queue will call to process transactions.
+   *
+   * @param data - Data containing batch information and pagination details.
+   * @returns A promise that resolves when the processing is complete.
+   */
   async processHistoricalTransactions(
     data: HistoricalTransactionsJobData,
   ): Promise<void> {
@@ -230,6 +279,8 @@ export class HistoricalTransactionsService {
     let totalFeeInEth: number = 0;
     let totalFeeInUsdt: number = 0;
 
+    // Save the transactions to the database
+    // Increment the totalTxns, totalFeeInEth, and totalFeeInUsdt for the batch
     for (const transaction of filteredTransactions) {
       totalFeeInEth += parseFloat(transaction.feeInEth);
       totalFeeInUsdt += parseFloat(transaction.feeInUsdt);
@@ -243,6 +294,7 @@ export class HistoricalTransactionsService {
       });
     }
 
+    // Update the batch with the new totals and status
     await this.prismaService.historicalTransactionsBatch.update({
       where: {
         id: batchId,
@@ -261,6 +313,7 @@ export class HistoricalTransactionsService {
       },
     });
 
+    // If there are more transactions to process, add a new job to the queue
     if (hasMore) {
       await this.trasanctionsQueue.add('process-historical-transactions', {
         startBlock,
@@ -271,6 +324,13 @@ export class HistoricalTransactionsService {
     }
   }
 
+  /**
+   * Gets the block number by a given timestamp.
+   *
+   * @param timestamp - The timestamp to get the block number for.
+   * @param closest - Whether to find the block before or after the timestamp.
+   * @returns A promise that resolves to the block number.
+   */
   private async getBlockNumberByTimestamp(
     timestamp: string,
     closest: 'before' | 'after',

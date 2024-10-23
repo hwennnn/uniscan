@@ -6,7 +6,6 @@ import { EthPriceModule } from 'src/eth-price/eth-price.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
@@ -15,6 +14,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Register BullMQ module with configuration
     BullModule.forRootAsync({
       imports: [ConfigModule], // Ensure ConfigModule is imported
       inject: [ConfigService], // Inject ConfigService
@@ -31,6 +31,5 @@ import { TransactionsModule } from './transactions/transactions.module';
     TransactionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

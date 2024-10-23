@@ -8,6 +8,16 @@ enum TransactionJob {
   ProcessHistoricalTransactions = 'process-historical-transactions',
 }
 
+/**
+ * Consumer class for processing transaction-related jobs.
+ *
+ * @class TransactionsConsumer
+ * @extends WorkerHost
+ * @decorator Processor
+ *
+ * @param {HistoricalTransactionsService} historicalTransactionsService - Service for processing historical transactions.
+ * @param {Logger} logger - Logger for logging job processing information.
+ */
 @Processor('transactions')
 export class TransactionsConsumer extends WorkerHost {
   constructor(

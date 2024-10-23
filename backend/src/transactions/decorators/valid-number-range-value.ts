@@ -4,6 +4,12 @@ import {
   type ValidatorConstraintInterface,
 } from 'class-validator';
 
+/**
+ * @class ValidNumberRangeValue
+ * @implements ValidatorConstraintInterface
+ * @description Validator constraint to check if a number is within a specified range.
+ *
+ */
 @ValidatorConstraint({ name: 'numberRange', async: false })
 export class ValidNumberRangeValue implements ValidatorConstraintInterface {
   validate(value: string | number, args: ValidationArguments): boolean {

@@ -21,6 +21,16 @@ export const ETHERSCAN_API_BLOCK_NUMBER_URL = (
 ) =>
   `${ETHERSCAN_API_BASE_URL}?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=${closest}&apikey=${apiKey}`;
 
+/**
+ * Constructs the URL for fetching token transactions from Etherscan API.
+ *
+ * @param page - The page number of the results to fetch.
+ * @param offset - The number of results to return per page.
+ * @param startBlock - The starting block number to fetch transactions from.
+ * @param endBlock - The ending block number to fetch transactions up to.
+ * @param apiKey - The API key for authenticating with the Etherscan API.
+ * @returns The constructed URL for the Etherscan API request.
+ */
 export const ETHERSCAN_API_TOKEN_TRANSACTIONS_URL = (
   page: number,
   offset: number,
