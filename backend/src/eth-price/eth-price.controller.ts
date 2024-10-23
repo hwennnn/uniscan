@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { EthPrice } from '@prisma/client';
-import { EthPriceService } from 'src/eth-price/eth-price.service';
+import { EthPriceService } from './eth-price.service';
 
 /**
  * Controller for handling Ethereum price related requests.

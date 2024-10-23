@@ -1,8 +1,8 @@
 import { Logger, Module } from '@nestjs/common';
-import { EthPriceService } from 'src/eth-price/eth-price.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { RedisService } from 'src/redis/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { EthPriceController } from './eth-price.controller';
+import { EthPriceService } from './eth-price.service';
 
 @Module({
   controllers: [EthPriceController],

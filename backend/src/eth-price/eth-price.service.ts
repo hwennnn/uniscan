@@ -8,14 +8,14 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { EthPrice } from '@prisma/client';
 import axios from 'axios';
 import { formatEther } from 'ethers';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import {
   BINANCE_ETH_PRICE_URL,
   ETH_PRICE_CACHE_TTL,
   LATEST_ETH_PRICE_CACHE_KEY,
-} from 'src/eth-price/models/constants';
-import { EthPriceResponse } from 'src/eth-price/models/price';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { RedisService } from 'src/redis/redis.service';
+} from './models/constants';
+import { EthPriceResponse } from './models/price';
 
 /**
  * Service responsible for fetching, saving, and retrieving Ethereum price data.
@@ -25,7 +25,7 @@ import { RedisService } from 'src/redis/redis.service';
  */
 @Injectable()
 export class EthPriceService {
-  /**
+  /**s
    * Constructs the EthPriceService.
    *
    * @param {PrismaService} prisma - The Prisma service for database operations.
