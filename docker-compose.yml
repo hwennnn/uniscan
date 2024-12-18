@@ -8,15 +8,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - sub-etha
 
   frontend:
     container_name: uniscan-frontend
     depends_on:
       - nestjs
-    networks:
-      - sub-etha
 
   postgres:
     container_name: uniscan-postgres
@@ -27,8 +23,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - sub-etha
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -40,8 +34,6 @@ services:
     image: redis:6
     volumes:
       - redis_data:/data
-    networks:
-      - sub-etha
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -51,6 +43,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-
-networks:
-  sub-etha:

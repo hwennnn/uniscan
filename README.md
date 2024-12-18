@@ -29,7 +29,8 @@ cd ../
 We will be running the app in development mode for now.
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop && \ 
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
 ```
 
 ### Setup Prisma Schema (in development)
