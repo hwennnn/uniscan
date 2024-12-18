@@ -96,7 +96,7 @@ const TransactionsTable = (): JSX.Element => {
       offset: pagination.pageIndex * pagination.pageSize,
     },
     enabled: !showHistoricalData,
-    placeholderData: keepPreviousData, // Keep the previous data while fetching new data
+    placeholderData: keepPreviousData, // Keep the previous data while fetching new data,
   });
 
   /**
@@ -120,6 +120,7 @@ const TransactionsTable = (): JSX.Element => {
       dateTo: dateRange?.[1] ?? 0,
     },
     enabled: showHistoricalData,
+    refetchOnWindowFocus: false,
   });
 
   // Step 2: Fetch the batch info
@@ -132,10 +133,12 @@ const TransactionsTable = (): JSX.Element => {
     },
     enabled:
       showHistoricalData &&
+      batchStatus !== BatchStatus.COMPLETED && // stop fetching if the batch is completed
       (initialBatchInfo?.id !== undefined ||
         batchStatus === BatchStatus.IN_PROGRESS ||
         batchStatus === BatchStatus.PENDING),
     refetchInterval: 1000, // poll the batchStatus every second
+    refetchOnWindowFocus: false,
   });
 
   // Step 3: Fetch historical transactions
@@ -152,6 +155,7 @@ const TransactionsTable = (): JSX.Element => {
       batchInfo !== null &&
       batchInfo?.status === BatchStatus.COMPLETED,
     placeholderData: keepPreviousData,
+    refetchOnWindowFocus: false,
   });
 
   // Memoize the transactions based on the current state (real-time or historical)

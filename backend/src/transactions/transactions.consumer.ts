@@ -2,11 +2,12 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { HistoricalTransactionsService } from './historical.transactions.service';
+import { TransactionJob } from './models/constants';
 import { HistoricalTransactionsJobData } from './models/transaction';
 
-enum TransactionJob {
-  ProcessHistoricalTransactions = 'process-historical-transactions',
-}
+type TransactionJobData = {
+  [TransactionJob.ProcessHistoricalTransactions]: HistoricalTransactionsJobData;
+};
 
 /**
  * Consumer class for processing transaction-related jobs.
@@ -27,18 +28,36 @@ export class TransactionsConsumer extends WorkerHost {
     super();
   }
 
-  async process(job: Job<any, any, string>): Promise<any> {
-    this.logger.log('Transactions MQ: Processing job ', job.id, job.name);
+  async process(
+    job: Job<TransactionJobData[keyof TransactionJobData], any, string>,
+  ): Promise<any> {
+    try {
+      this.logger.log({
+        message: 'Processing transaction job',
+        jobId: job.id,
+        jobName: job.name,
+        data: job.data,
+      });
 
-    switch (job.name) {
-      case TransactionJob.ProcessHistoricalTransactions:
-        const jobData: HistoricalTransactionsJobData = job.data;
-        return await this.historicalTransactionsService.processHistoricalTransactions(
-          jobData,
-        );
+      switch (job.name) {
+        case TransactionJob.ProcessHistoricalTransactions:
+          return await this.historicalTransactionsService.processHistoricalTransactions(
+            job.data,
+          );
 
-      default:
-        return;
+        default:
+          this.logger.warn(`Unknown job type: ${job.name}`);
+          return;
+      }
+    } catch (error) {
+      this.logger.error({
+        message: 'Error processing transaction job',
+        jobId: job.id,
+        jobName: job.name,
+        error: error.message,
+        stack: error.stack,
+      });
+      throw error; // Re-throw to let BullMQ handle the failure
     }
   }
 }

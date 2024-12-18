@@ -19,6 +19,7 @@ import {
   DEFAULT_HISTORICAL_TRANSACTIONS_PAGE_SIZE,
   ETHERSCAN_API_BLOCK_NUMBER_URL,
   ETHERSCAN_API_TOKEN_TRANSACTIONS_URL,
+  TransactionJob,
 } from './models/constants';
 import {
   EtherscanBlockResponse,
@@ -230,6 +231,25 @@ export class HistoricalTransactionsService {
 
     const transactions = response.data.result;
 
+    if (
+      transactions === null ||
+      transactions === undefined ||
+      transactions.length === 0
+    ) {
+      this.logger.warn(`No transactions found for batch ${batchId}`);
+      // Update the batch with completed status
+      await this.prismaService.historicalTransactionsBatch.update({
+        where: {
+          id: batchId,
+        },
+        data: {
+          status: BatchStatus.COMPLETED,
+        },
+      });
+
+      return;
+    }
+
     const hasMore =
       transactions.length === DEFAULT_HISTORICAL_TRANSACTIONS_PAGE_SIZE + 1;
 
@@ -315,12 +335,15 @@ export class HistoricalTransactionsService {
 
     // If there are more transactions to process, add a new job to the queue
     if (hasMore) {
-      await this.trasanctionsQueue.add('process-historical-transactions', {
-        startBlock,
-        endBlock,
-        batchId,
-        page: page + 1,
-      } as HistoricalTransactionsJobData);
+      await this.trasanctionsQueue.add(
+        TransactionJob.ProcessHistoricalTransactions,
+        {
+          startBlock,
+          endBlock,
+          batchId,
+          page: page + 1,
+        } as HistoricalTransactionsJobData,
+      );
     }
   }
 
