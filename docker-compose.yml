@@ -30,6 +30,11 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - SERVER_PORT=${SERVER_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - INFURA_API_KEY=${INFURA_API_KEY}
+      - ETHERSCAN_API_KEY=${ETHERSCAN_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
