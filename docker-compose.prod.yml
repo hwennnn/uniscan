@@ -1,38 +1,30 @@
 version: "3.8"
 
 services:
-  nestjs:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
-    environment:
-      - NODE_ENV=production
-      - SERVER_PORT=${SERVER_PORT}
-      - REDIS_URL=${REDIS_URL}
-    volumes:
-      - ./backend:/app
+  nginx:
+    restart: always
 
   frontend:
     build:
-      context: ./frontend
       dockerfile: Dockerfile.prod
-    ports:
-      - "5173:5173"
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./frontend/:/app
+    restart: always
+
+  backend:
+    build:
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      - SERVER_PORT=${SERVER_PORT}
+    restart: always
 
   postgres:
+    restart: always
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-    expose:
-      - "${POSTGRES_PORT}"
 
   redis:
+    restart: always
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
-    expose:
-      - "${REDIS_PORT}"

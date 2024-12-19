@@ -107,5 +107,6 @@ pnpm test:e2e
 ### To setup configs to run the production environment
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop && \ 
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
 ```

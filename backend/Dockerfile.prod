@@ -8,6 +8,9 @@ RUN corepack enable
 # Install procps and openssl
 RUN apt-get update && apt-get install -y procps openssl
 
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl
+
 WORKDIR /app
 
 # Copy package.json and pnpm-lock.yaml for dependency installation

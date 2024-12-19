@@ -1,40 +1,33 @@
 version: "3.8"
 
 services:
-  nestjs:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
-    environment:
-      - NODE_ENV=development
-      - SERVER_PORT=${SERVER_PORT}
-      - REDIS_URL=${REDIS_URL}
+  nginx:
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - ./nginx/conf.d:/etc/nginx/conf.d
 
   frontend:
     build:
-      context: ./frontend
       dockerfile: Dockerfile.dev
-    ports:
-      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
+
+  backend:
+    build:
+      dockerfile: Dockerfile.dev
     volumes:
-      - ./frontend/:/app
+      - ./backend:/app
       - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - SERVER_PORT=${SERVER_PORT}
 
   postgres:
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-    expose:
-      - "${POSTGRES_PORT}"
 
   redis:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
-    expose:
-      - "${REDIS_PORT}"

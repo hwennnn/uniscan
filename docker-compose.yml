@@ -1,45 +1,70 @@
 version: "3.8"
 
 services:
-  nestjs:
-    container_name: uniscan-nestjs
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+    expose:
+      - ${FRONTEND_PORT}
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    expose:
+      - ${SERVER_PORT}
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SERVER_PORT=${SERVER_PORT}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-
-  frontend:
-    container_name: uniscan-frontend
-    depends_on:
-      - nestjs
+        condition: service_started
 
   postgres:
-    container_name: uniscan-postgres
-    image: postgres:13
+    image: postgres:13-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    expose:
+      - ${POSTGRES_PORT}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   redis:
-    container_name: uniscan-redis
-    image: redis:6
+    image: redis:7-alpine
+    expose:
+      - ${REDIS_PORT}
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
+  nginx_logs:
   postgres_data:
   redis_data:
+
+networks:
+  app-network:
+    driver: bridge

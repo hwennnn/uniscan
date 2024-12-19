@@ -2,10 +2,11 @@ import { Controller, Get } from '@nestjs/common';
 
 @Controller()
 export class AppController {
-  constructor() {}
-
   @Get('health')
-  health(): string {
-    return 'The server is running!';
+  health() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

@@ -9,8 +9,8 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidUnknownValues: false }),
   );
 
-  app.setGlobalPrefix('/api/v1');
-  await app.init();
+  app.enableCors();
+  app.setGlobalPrefix('api/v1/');
 
   await app.listen(process.env.SERVER_PORT ?? 8000);
 }
