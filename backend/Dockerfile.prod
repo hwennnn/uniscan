@@ -31,5 +31,7 @@ RUN pnpm run db:generate
 # Build the application
 RUN pnpm run build
 
+EXPOSE 8000
+
 # Command to run the application
 CMD ["pnpm", "run", "start:prod"]
