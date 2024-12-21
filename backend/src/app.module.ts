@@ -20,8 +20,7 @@ import { TransactionsModule } from './transactions/transactions.module';
       inject: [ConfigService], // Inject ConfigService
       useFactory: (configService: ConfigService) => ({
         connection: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'), // Fallback to 'localhost'
-          port: parseInt(configService.get<string>('REDIS_PORT', '6379'), 10), // Fallback to '6379'
+          url: configService.get<string>('REDIS_URL', 'redis://localhost:6379'),
         },
       }),
     }),

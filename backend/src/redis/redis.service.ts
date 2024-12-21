@@ -27,11 +27,7 @@ export class RedisService {
     private readonly configService: ConfigService,
     private readonly logger: Logger,
   ) {
-    this.client = new Redis({
-      host: this.configService.get<string>('REDIS_HOST'),
-      port: this.configService.get<number>('REDIS_PORT'),
-      password: this.configService.get<string>('REDIS_PASSWORD'),
-    });
+    this.client = new Redis(this.configService.get<string>('REDIS_URL'));
 
     this.client.on('error', (e) => {
       this.logger.error(
