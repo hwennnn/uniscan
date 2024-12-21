@@ -1,5 +1,7 @@
 # uniscan
 
+![CI](https://github.com/hwennnn/uniscan/actions/workflows/ci.yml/badge.svg)
+
 ## Demo Video
 
 View the demo video [here](https://youtu.be/Llf3kSnb6PY).
@@ -21,13 +23,20 @@ cp .env.example .env
 
 and update the `.env` file with the correct values.
 
-### Run Docker compose
+### Run in Docker Compose
 
-We will be running the app in development mode for now.
+#### Development mode
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml stop && \ 
   docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
+```
+
+#### Production mode
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml stop && \ 
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
 ```
 
 ### Setup Prisma Schema (in development)
@@ -101,11 +110,15 @@ docker exec -it uniscan-nestjs bash
 pnpm test:e2e
 ```
 
-## WIP
-
-### To setup configs to run the production environment
+### Run CI locally with `act`
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml stop && \ 
-  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
+# Run all tests
+act
+
+# Run backend tests
+act -j backend-tests
+
+# Run frontend lint
+act -j frontend-lint
 ```
