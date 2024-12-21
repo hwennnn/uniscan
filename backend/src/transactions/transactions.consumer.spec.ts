@@ -18,6 +18,7 @@ describe('TransactionsConsumer', () => {
   let prismaService: PrismaService;
   let ethPriceService: EthPriceService;
   let transactionsQueue: Queue;
+  let logger: jest.Mocked<Logger>;
 
   const mockTransaction = {
     hash: '0x123',
@@ -40,6 +41,7 @@ describe('TransactionsConsumer', () => {
           useValue: {
             log: jest.fn(),
             error: jest.fn(),
+            warn: jest.fn(),
           },
         },
         {
@@ -79,6 +81,7 @@ describe('TransactionsConsumer', () => {
     prismaService = module.get<PrismaService>(PrismaService);
     ethPriceService = module.get<EthPriceService>(EthPriceService);
     transactionsQueue = module.get('BullQueue_transactions');
+    logger = module.get(Logger);
   });
 
   describe('processHistoricalTransactions', () => {
@@ -210,6 +213,11 @@ describe('TransactionsConsumer', () => {
         jobData,
       );
 
+      // Verify warning was logged
+      expect(logger.warn).toHaveBeenCalledWith(
+        `No transactions found for batch ${jobData.batchId}`,
+      );
+
       // Verify batch was updated with zero increments
       expect(
         prismaService.historicalTransactionsBatch.update,
@@ -217,9 +225,6 @@ describe('TransactionsConsumer', () => {
         where: { id: jobData.batchId },
         data: {
           status: BatchStatus.COMPLETED,
-          totalTxns: { increment: 0 },
-          totalFeeInEth: { increment: 0 },
-          totalFeeInUsdt: { increment: 0 },
         },
       });
     });
@@ -233,8 +238,8 @@ describe('TransactionsConsumer', () => {
         data: {},
       };
 
-      const result = await consumer.process(job as any);
-      expect(result).toBeUndefined();
+      await consumer.process(job as any);
+      expect(logger.warn).toHaveBeenCalledWith('Unknown job type: unknown-job');
     });
   });
 });

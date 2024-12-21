@@ -13,8 +13,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "The server is running!"', () => {
-      expect(appController.health()).toBe('The server is running!');
+    it('should return "ok"', () => {
+      expect(appController.health()).toEqual({
+        status: 'ok',
+        timestamp: expect.any(String),
+      });
     });
   });
 });
