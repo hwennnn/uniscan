@@ -16,6 +16,8 @@ services:
   frontend:
     build:
       context: ./frontend
+    environment:
+      - BACKEND_URL=${BACKEND_URL}
     expose:
       - ${FRONTEND_PORT}
     depends_on:

@@ -17,20 +17,17 @@ cd uniscan
 
 ```bash
 cp .env.example .env
-
-cd backend
-cp .env.example .env
-
-cd ../
 ```
+
+and update the `.env` file with the correct values.
 
 ### Run Docker compose
 
 We will be running the app in development mode for now.
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop && \ 
-  docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml stop && \ 
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
 ```
 
 ### Setup Prisma Schema (in development)
@@ -50,7 +47,9 @@ pnpm db:sync
 ![Push DB schema](docs/push-schema.png)
 After pushing the DB schema, you are ready to go 🎉🎉.
 
-View the frontend at `http://localhost:5173` and the backend at `http://localhost:8000/api/v1`.
+View the frontend at `http://localhost:80` and the backend at `http://localhost:80/api/v1`.
+
+You can check whether the backend is running by visiting `http://localhost:80/api/v1/health`.
 
 ## API Documentation
 
@@ -107,6 +106,6 @@ pnpm test:e2e
 ### To setup configs to run the production environment
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop && \ 
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml stop && \ 
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up --build
 ```
