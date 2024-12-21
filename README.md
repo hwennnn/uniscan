@@ -36,7 +36,7 @@ After spinning up the containers, run the following command to initialise the da
 
 ```bash
 # SSH into the container
-docker exec -it uniscan-nestjs bash
+docker exec -it uniscan-backend bash
 
 # Inside the container shell
 pnpm db:push # to push the schema to the database

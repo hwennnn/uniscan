@@ -21,10 +21,6 @@ services:
 
   postgres:
     restart: always
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
 
   redis:
     restart: always
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"

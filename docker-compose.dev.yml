@@ -22,12 +22,3 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - SERVER_PORT=${SERVER_PORT}
-
-  postgres:
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-
-  redis:
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
