@@ -11,6 +11,9 @@ RUN pnpm install
 
 COPY . .
 
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+
 RUN pnpm run build
 
 EXPOSE 5173
@@ -18,4 +21,3 @@ EXPOSE 5173
 ENV NODE_ENV=production
 
 CMD ["pnpm", "run", "serve"]
-
