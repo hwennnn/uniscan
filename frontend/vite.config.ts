@@ -6,23 +6,18 @@ export default defineConfig(() => {
     base: "/",
     plugins: [react()],
     preview: {
-      port: 5173,
-      strictPort: true,
+      host: true,
+      open: true,
+      port: 5174,
     },
     server: {
-      port: 5173,
-      strictPort: true,
       host: true,
-      proxy: {
-        "/api": {
-          target: process.env.BACKEND_URL,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
-        },
-      },
-      esbuild: {
-        target: "esnext",
-        platform: "linux",
+      open: true,
+      port: 5173,
+    },
+    resolve: {
+      alias: {
+        src: "/src",
       },
     },
   };
