@@ -1,20 +1,18 @@
 # Build stage
 FROM node:18-alpine AS builder
 
-RUN npm install -g pnpm
-
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install
+RUN npm install -g pnpm && pnpm install
 
 COPY . .
 
 ARG VITE_BACKEND_URL
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
-RUN pnpm run build
+RUN pnpm build
 
 EXPOSE 5173
 
