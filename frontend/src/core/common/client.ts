@@ -11,7 +11,7 @@ import axios, { AxiosInstance } from "axios";
  * @type {AxiosInstance}
  */
 const client: AxiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   headers: { "Content-Type": "application/json" },
 });
 

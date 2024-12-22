@@ -19,7 +19,7 @@ services:
     build:
       context: ./frontend
     environment:
-      - BACKEND_URL=${BACKEND_URL}
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     expose:
       - ${FRONTEND_PORT}
     depends_on:

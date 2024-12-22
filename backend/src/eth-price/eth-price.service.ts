@@ -57,7 +57,7 @@ export class EthPriceService {
    * @returns {Promise<void>}
    * @throws Will log an error if the fetch operation fails.
    */
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async fetchAndSaveEthPrice(): Promise<void> {
     try {
       const response = await axios.get<EthPriceResponse>(BINANCE_ETH_PRICE_URL);

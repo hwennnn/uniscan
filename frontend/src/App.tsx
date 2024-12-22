@@ -1,10 +1,14 @@
+import Dashboard from "./components/Dashboard";
+import SearchInput from "./components/SearchInput";
+import TransactionsTable from "./components/TransactionsTable";
 import { APIProvider } from "./core/common/api-provider";
-import MainScreen from "./MainScreen";
 
 function App() {
   return (
     <APIProvider>
-      <MainScreen />
+      <Dashboard />
+      <SearchInput />
+      <TransactionsTable />
     </APIProvider>
   );
 }
