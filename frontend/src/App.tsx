@@ -5,6 +5,7 @@ import { APIProvider } from "./core/common/api-provider";
 
 function App() {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  console.log("🚀 ~ App ~ backendUrl:", backendUrl);
   if (!backendUrl) {
     console.warn("Backend URL is not configured properly");
   }
